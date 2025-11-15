@@ -9,4 +9,5 @@ export default defineConfig({
     outDir: 'dist'
   },
   // plugins: []  <-- aquí solo van plugins que realmente uses
+  base: '/code-master-uasd-lolo/',
 })
