@@ -41,13 +41,13 @@ function heroHtml() {
     const user = getUser();
     return `
     <div class="hero p-3 rounded-3 mb-3" style="background: linear-gradient(90deg, rgba(10,20,60,0.95), rgba(0,50,120,0.95)); color: white;">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-            <a class="navbar-brand" href="#" id="brand">
-                <img src="src/img/2log.png" alt="Logo" height="160" class="me-2">
-            </a>
+            <div class="d-flex justify-content-between align-items-center">
+                <!-- Navbar -->
+                <span class="navbar-brand text-illuminated fw-bold fs-3" id="brand">
+                        Animate al vuelo y en las nubes exploremos el código 
+                </span>
 
-            </div>
+
             <div class="text-end">
                 ${user 
                     ? `<span class="me-2">👋 ${user.nombre}</span>

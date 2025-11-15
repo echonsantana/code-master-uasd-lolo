@@ -438,6 +438,24 @@ body {
 .seat.occupied { background-color: #dc3545; cursor: not-allowed; }
 .seat.selected { background-color: #ffc107; }
 
+.text-illuminated {
+  background: linear-gradient(90deg, #ff6ec4, #7873f5, #42f5b3);
+  background-clip: text;          /* estándar (no soportado en todos los navegadores) */
+  -webkit-background-clip: text;  /* webkit necesario */
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  display: inline-block;
+  animation: floatText 3s ease-in-out infinite alternate;
+}
+
+/* Animación de movimiento vertical suave */
+@keyframes floatText {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0px); }
+}
+
 
 
 
