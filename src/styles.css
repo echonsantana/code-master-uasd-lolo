@@ -1,0 +1,443 @@
+
+:root {
+  --accent: #0b3b8c;
+  --muted: #6b7280;
+}
+
+body {
+  background: linear-gradient(180deg, #0a2342 0%, #2a5298 50%, #f4a261 100%);
+  color: white;
+  font-family: "Segoe UI", sans-serif;
+  min-height: 100vh;
+  background-attachment: fixed;
+}
+
+/* === NAVBAR === */
+.navbar-brand {
+  font-weight: 700;
+}
+
+/* === HERO === */
+.hero {
+  background: linear-gradient(90deg, rgba(11, 59, 140, 0.95), rgba(6, 118, 212, 0.85));
+  color: white;
+  padding: 28px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+}
+
+.search-panel {
+  background: rgba(58, 56, 83, 0.95);
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 14px;
+}
+
+/* === FEATURED SECTION === */
+.featured {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.card-flight img {
+  height: 160px;
+  object-fit: cover;
+}
+
+/* === DEPARTURES === */
+.departures-horizontal {
+    width: 100%;
+    background: #000; /* negro */
+    padding: 25px;
+    border-radius: 15px;
+    color: #fff;
+
+    /* HORIZONTAL */
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 25px;
+    overflow-x: auto;
+    white-space: nowrap;
+
+    /* ALTURA GRANDE */
+    height: 200px;
+}
+
+.departures-horizontal h6 {
+    font-size: 1.4rem;
+    min-width: 200px;
+    margin: 0;
+    font-weight: 700;
+}
+
+#tableroSmall > div {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-right: 20px;
+}
+
+
+
+
+
+/* === SEAT GRID === */
+.seat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 420px;
+}
+
+.seat {
+  width: 44px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  background: white;
+}
+
+.seat.booked {
+  background: #d9534f;
+  color: white;
+  border-color: #d9534f;
+  cursor: not-allowed;
+}
+
+.seat.selected {
+  background: #28a745;
+  color: white;
+}
+
+/* === FOOTER === */
+.footer {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 767px) {
+  .featured {
+    flex-direction: column;
+  }
+
+  .seat {
+    width: 36px;
+    height: 34px;
+  }
+
+  .card-flight img {
+    height: 120px;
+  }
+}
+
+.navbar {
+  background: linear-gradient(90deg, #0a2342, #0074d9, #ff4136);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* === MODALES PERSONALIZADOS === */
+.modal-content {
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 0 35px rgba(0, 0, 0, 0.4);
+  animation: fadeIn 0.3s ease-in-out;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0a2342 0%, #1b3a75 50%, #2a5298 100%);
+  color: #fff;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  border-bottom: none;
+  background: linear-gradient(90deg, #0074d9, #0b3b8c);
+  color: #fff;
+  padding: 1rem 1.5rem;
+}
+
+.modal-title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.modal-body {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  padding: 1.5rem;
+}
+
+.modal-body .form-control {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-radius: 0.6rem;
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.modal-body .form-control:focus {
+  border-color: #f4a261;
+  box-shadow: 0 0 0 0.25rem rgba(244, 162, 97, 0.25);
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.modal-body .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.btn {
+  border-radius: 0.6rem;
+  font-weight: 500;
+  transition: all 0.25s ease-in-out;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0074d9, #0b3b8c);
+  border: none;
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #1ba1e2, #0074d9);
+  border: none;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745, #2a5298);
+  border: none;
+}
+
+.modal-body a {
+  color: #f4a261;
+  text-decoration: none;
+}
+
+.modal-body a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 576px) {
+  .modal-content {
+    border-radius: 0.75rem;
+  }
+}
+
+
+/* === SEAT GRID (MODAL) === */
+.seat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 8px;
+  justify-items: center;
+}
+
+.seat {
+  width: 48px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 2px solid #0b3b8c;
+  cursor: pointer;
+  background: white;
+  color: #0b3b8c;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.seat:hover {
+  background: #0b3b8c;
+  color: white;
+  transform: scale(1.05);
+}
+
+.seat.booked {
+  background: #d9534f;
+  color: white;
+  border-color: #d9534f;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.seat.selected {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+  transform: scale(1.05);
+}
+
+
+
+/* ====== ESTILO PERSONALIZADO DEL MENÚ DE NAVEGACIÓN ====== */
+.navbar-nav .nav-link {
+  font-size: 1.30rem;        /* Aumenta el tamaño del texto */
+  font-weight: 600;          /* Texto más grueso */
+  color: #ffffff !important; /* Asegura que las letras se mantengan blancas */
+  padding: 0.75rem 1rem;     /* Más espacio alrededor */
+  transition: all 0.3s ease; /* Animación suave */
+  text-transform: capitalize; /* Pone mayúscula inicial */
+  position: relative;
+}
+
+/* Efecto hover más elegante */
+.navbar-nav .nav-link:hover {
+  color: #ffe082 !important; /* Cambia a un tono dorado o claro */
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
+/* Mantiene alineado el área del usuario (último ítem del menú) */
+#nav-user-area {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+
+/* === ESTILOS DE PAGOS === */
+#formPagoContainer .card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#formPagoContainer .card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+#formPagoContainer input,
+#formPagoContainer select {
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 15px;
+}
+
+#formPagoContainer label {
+  font-weight: 600;
+  color: #003366;
+}
+
+#formPagoContainer button {
+  border-radius: 12px;
+  font-weight: 600;
+  padding: 10px 16px;
+}
+
+#formPagoContainer button:hover {
+  background-color: #0056b3;
+}
+
+.table-striped tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.list-group-item strong {
+  color: #d9dde2;
+}
+
+/* ------------------ Estilo tabla vuelos ------------------ */
+#contenidoVuelos {
+    margin-top: 1.5rem;
+}
+
+#contenidoVuelos table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: rgba(0,0,0,0.3); /* Fondo semi-transparente */
+    color: white;
+}
+
+#contenidoVuelos th, 
+#contenidoVuelos td {
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+    text-align: center;
+}
+
+#contenidoVuelos th {
+    background-color: #0d6efd; /* Azul bootstrap */
+    color: white;
+}
+
+#contenidoVuelos tr:nth-child(even) {
+    background-color: rgba(255,255,255,0.05);
+}
+
+#contenidoVuelos tr:hover {
+    background-color: rgba(255,255,255,0.15);
+    transition: background-color 0.2s;
+}
+
+.btn-reservar {
+    min-width: 90px;
+}
+
+#contenidoPrincipal {
+    max-height: 600px;
+    overflow-y: auto;
+    background-color: transparent; /* transparente por defecto */
+    padding: 0;
+    border-radius: 0;
+}
+
+#contenidoPrincipal.tabla-activa {
+    background-color: #fff; /* fondo claro para la tabla */
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.seat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 40px);
+  gap: 5px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.seat {
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #28a745; /* disponible */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: white;
+}
+
+.seat.occupied { background-color: #dc3545; cursor: not-allowed; }
+.seat.selected { background-color: #ffc107; }
+
+
+
+
