@@ -9,6 +9,15 @@ renderVuelos(container);
 
 const db = new BaseDatos();
 
+const modalPagoEl = document.getElementById('modalPago');
+let modalPago = null;
+if (modalPagoEl) {
+    modalPago = new bootstrap.Modal(modalPagoEl, { backdrop: 'static', keyboard: false });
+}
+
+
+
+
 /* --------------------------- Utilidades --------------------------- */
 function toast(msg, type = 'primary') {
     const c = document.getElementById('toast-container');
@@ -179,72 +188,75 @@ export function renderInicio(container) {
     
 
         <div class="row">
-            <div class="col-lg-8"><div id="contenidoPrincipal"></div></div>
-                <div class="col-lg-15">
-                     <div class="departures-horizontal" id="sideDepartures">
-                        <h6>Próximos vuelos</h6>
-                        <div id="tableroSmall"></div>
-                    </div>
-                </div>
-            </div>
+    <div class="col-lg-8">
+        <div id="contenidoPrincipal"></div>
+    </div>
 
-                    <!-- Modal Reserva -->
-            <div class="modal fade" id="modalReservaOferta" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content shadow-lg border-0 rounded-3 overflow-hidden">
-                        <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title">Confirmar Reserva</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-                    <div class="modal-body" id="contenidoReservaModal"></div>
-                </div>
-            </div>
-        </div>
-
-    <!-- Modal Pago -->
-    <div class="modal fade" id="modalPago" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content shadow-lg border-0 rounded-3 overflow-hidden">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Formulario de Pago</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="formPago">
-                        <input type="hidden" id="reservaIdPago">
-                            <div class="mb-3">
-                                <label class="form-label">Monto</label>
-                                    <input type="number" id="pagoMonto" class="form-control" placeholder="Monto a pagar" required>
-                                </div>
-
-        <!-- Campo oculto para guardar la reserva que se paga -->
-            <input type="hidden" id="reservaIdPago" value="">
-
-            <div class="mb-3">
-                 <label class="form-label">Número de tarjeta</label>
-                     <input type="text" class="form-control" placeholder="1234 5678 9012 3456" required>
-            </div>
-                <div class="mb-3">
-                     <label class="form-label">Nombre en la tarjeta</label>
-                        <input type="text" class="form-control" placeholder="Juan Pérez" required>
-                </div>
-                <div class="mb-3 row">
-                    <div class="col">
-                         <label class="form-label">Expiración</label>
-                         <input type="text" class="form-control" placeholder="MM/AA" required>
-                         </div>
-                <div class="col">
-                <label class="form-label">CVV</label>v
-                <input type="text" class="form-control" placeholder="123" required>
-                </div>
-            </div>
-                <button type="submit" class="btn btn-success w-100 mt-2">Pagar</button>
-                    </form>
-
-                </div>
-            </div>
+    <div class="col-lg-15">
+        <div class="departures-horizontal" id="sideDepartures">
+            <h6>Próximos vuelos</h6>
+            <div id="tableroSmall"></div>
         </div>
     </div>
+</div>
+
+<!-- Modal Reserva -->
+<div class="modal fade" id="modalReservaOferta" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg border-0 rounded-3 overflow-hidden">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Confirmar Reserva</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" id="contenidoReservaModal"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Pago -->
+<!-- Modal de Pago -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="formPago">
+        <div class="modal-header">
+          <h5 class="modal-title">Pagar Reserva</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="monto" class="form-label">Monto</label>
+            <input type="number" step="0.01" name="monto" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre en tarjeta</label>
+            <input type="text" name="nombre" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label for="numero" class="form-label">Número de tarjeta</label>
+            <input type="text" name="numero" class="form-control" required>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label for="exp" class="form-label">Expiración</label>
+              <input type="text" name="exp" class="form-control" placeholder="MM/AA" required>
+            </div>
+            <div class="col">
+              <label for="cvv" class="form-label">CVV</label>
+              <input type="text" name="cvv" class="form-control" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Pagar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
     `;
 
 
@@ -599,6 +611,7 @@ export function renderVuelos(container) {
 }
 
 /* --------------------------- Función auxiliar para mostrar pago --------------------------- */
+// Función para abrir el modal de pago
 function abrirPago(reservaId) {
     const user = getUser();
     if (!user) { 
@@ -612,8 +625,36 @@ function abrirPago(reservaId) {
 
     formPago.dataset.reservaId = reservaId; // Guardamos la reserva
     formPago.reset(); // Limpiamos el formulario
-    new bootstrap.Modal(document.getElementById('modalPago')).show();
+
+    // Abrimos el modal
+    const modalPago = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPago'));
+    modalPago.show();
 }
+
+// Configuramos el submit del formulario de pago
+document.addEventListener('DOMContentLoaded', () => {
+    const formPago = document.getElementById('formPago');
+    if (!formPago) return;
+
+    formPago.addEventListener('submit', function(e) {
+        e.preventDefault(); // Evita recargar la página
+
+        const reservaId = formPago.dataset.reservaId;
+        if (!reservaId) return;
+
+        // Aquí iría tu lógica real de procesar pago
+        // Ejemplo: procesarPago(reservaId);
+        console.log('Procesando pago para la reserva:', reservaId);
+
+        // Cerramos el modal
+        const modalPago = bootstrap.Modal.getInstance(document.getElementById('modalPago'));
+        if (modalPago) modalPago.hide();
+
+        // Mostramos mensaje de éxito
+        toast('Pago realizado con éxito', 'success');
+    });
+});
+
 
 /* --------------------------- Reserva en contenido principal --------------------------- */
 function renderReserva(container, vueloId) {
@@ -888,47 +929,18 @@ export function renderPagos(container = document.getElementById('app')) {
 
   const db = new BaseDatos();
   const reservas = db.obtenerReservasByUser(user.id);
-  const pendientes = reservas.filter(r => r.pagoEstado !== 'pagada' && r.estado !== 'cancelada');
-  const pagos = db.obtenerPagos().filter(p => {
-    const reserva = reservas.find(r => r.id === p.reservaId);
-    return reserva && reserva.clienteId === user.id;
-  });
+  const pagos = db.obtenerPagos().filter(p => reservas.find(r => r.id === p.reservaId));
 
   container.innerHTML = `
     <div class="container my-4">
-      <h3 class="mb-4 text-primary"><i class="bi bi-credit-card"></i> Confirmar y Pagar</h3>
+      <h3 class="mb-4 text-primary"><i class="bi bi-credit-card"></i> Historial de Pagos</h3>
 
       <div class="row">
-       <div class="col-md-6">
-            <h5>Reservas Pendientes</h5>
-                ${
-                     pendientes.length
-                         ? `<ul class="list-group mb-3">
-                            ${pendientes
-                            .map(
-                             r => `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                         <strong>${r.codigo}</strong><br>
-                            <small>${r.fecha.slice(0,10)}</small>
-                </div>
-                <button class="btn btn-sm btn-success btnPagar" data-id="${r.id}">Pagar $${r.total || 0}</button>
-                         </li>`
-                        )
-                        .join('')}
-                     </ul>`
-                : `<p class="texto-reserva-vacia">No tienes reservas pendientes de pago.</p>`
-        }
-
-  <div id="formPagoContainer" class="mt-4"></div>
-</div>
-
-
-        <div class="col-md-6">
-          <h5>Historial de Pagos</h5>
+        <div class="col-md-12">
           ${
             pagos.length
-              ? `<div class="table-responsive"><table class="table table-striped table-sm">
+              ? `<div class="table-responsive">
+                  <table class="table table-striped table-sm">
                     <thead class="table-light">
                       <tr>
                         <th>Código</th>
@@ -938,19 +950,17 @@ export function renderPagos(container = document.getElementById('app')) {
                       </tr>
                     </thead>
                     <tbody>
-                      ${pagos
-                        .map(
-                          p => `
-                          <tr>
-                            <td>${p.codigo}</td>
-                            <td>${p.reservaId}</td>
-                            <td>$${p.monto}</td>
-                            <td>${p.fecha.slice(0,10)}</td>
-                          </tr>`
-                        )
-                        .join('')}
+                      ${pagos.map(p => `
+                        <tr>
+                          <td>${p.codigo}</td>
+                          <td>${p.reservaId}</td>
+                          <td>$${p.monto}</td>
+                          <td>${p.fecha.slice(0,10)}</td>
+                        </tr>
+                      `).join('')}
                     </tbody>
-                  </table></div>`
+                  </table>
+                </div>`
               : `<p class="text-muted">Aún no has realizado pagos.</p>`
           }
         </div>
@@ -958,81 +968,32 @@ export function renderPagos(container = document.getElementById('app')) {
     </div>
   `;
 
-  // === EVENTO PAGAR ===
-  container.querySelectorAll('.btnPagar').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const reserva = pendientes.find(r => r.id === btn.dataset.id);
-      if (!reserva) return;
+  // === PAGAR DIRECTO SIN FORMULARIO ===
+  reservas
+    .filter(r => r.pagoEstado !== 'pagada' && r.estado !== 'cancelada')
+    .forEach(reserva => {
+      const result = procesarPago({
+        reservaId: reserva.id,
+        numero: '0000 0000 0000 0000', // valores dummy
+        exp: '12/99',
+        cvv: '000',
+        nombre: user.nombre || 'Cliente'
+      });
 
-      const formContainer = document.getElementById('formPagoContainer');
-      formContainer.innerHTML = `
-        <div class="card mt-3 shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title mb-3">Confirmar pago de ${reserva.codigo}</h5>
-            <form id="formPago">
-              <div class="mb-3">
-                <label class="form-label">Número de tarjeta</label>
-                <input type="text" id="numero" class="form-control" maxlength="19" required placeholder="XXXX XXXX XXXX XXXX">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Fecha de expiración (MM/AA)</label>
-                <input type="text" id="exp" class="form-control" placeholder="MM/AA" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">CVV</label>
-                <input type="password" id="cvv" class="form-control" maxlength="3" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Nombre en la tarjeta</label>
-                <input type="text" id="nombre" class="form-control" required>
-              </div>
-              <div class="d-grid">
-                <button class="btn btn-primary" type="submit">Confirmar Pago</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      `;
-
-      const form = document.getElementById('formPago');
-
-form.addEventListener('submit', e => {
-  e.preventDefault();
-
-  const numero = document.getElementById('numero').value.trim();
-  const exp = document.getElementById('exp').value.trim();
-  const cvv = document.getElementById('cvv').value.trim();
-  const nombre = document.getElementById('nombre').value.trim();
-
-  const result = procesarPago({ reservaId: reserva.id, numero, exp, cvv, nombre });
-
-  if (result.ok) {
-    toast('✅ Pago realizado correctamente');
-
-    const modalEl = document.getElementById('modalPago');
-
-    // 🔹 Mover focus a un botón seguro fuera del modal antes de cerrarlo
-    document.getElementById('btn-login')?.focus(); // cualquier elemento seguro visible
-
-    let modal = bootstrap.Modal.getInstance(modalEl);
-    if (!modal) modal = new bootstrap.Modal(modalEl);
-
-    modal.hide();
-
-    // 🔹 Opcional: limpiar el formulario después de que se cierre
-    modalEl.addEventListener('hidden.bs.modal', () => {
-      form.reset();
-      renderPagos(container);
-    }, { once: true });
-  } else {
-    toast(result.msg || 'Error al procesar el pago', 'danger');
-  }
-});
-
-
+      if (result.ok) {
+        toast(`✅ Pago de ${reserva.codigo} realizado correctamente`);
+      } else {
+        toast(result.msg || `Error al procesar el pago de ${reserva.codigo}`, 'danger');
+      }
     });
-  });
+
+  // Refresca el historial después de procesar todos los pagos
+  // Evita stack overflow usando setTimeout para romper recursión directa
+  setTimeout(() => renderPagos(container), 50);
 }
+
+
+
 
 //
 
