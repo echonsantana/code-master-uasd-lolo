@@ -1,8 +1,11 @@
 // main.js
 import { renderPagos } from './interfaz.js';
 import Interfaz from './interfaz.js';
+//Interfaz.renderInicio(container);
 import './controladores.js';
 import BaseDatos from './baseDatos.js';
+
+
 
 const container = document.getElementById('app');
 const db = new BaseDatos();

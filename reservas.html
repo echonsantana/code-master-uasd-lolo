@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Reservas - Aeropuerto Internacional</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="bi bi-airplane"></i> Mis Reservas</a>
+      <button class="btn btn-light btn-sm" id="cerrarSesion">Cerrar sesión</button>
+    </div>
+  </nav>
+
+  <main class="container mt-4">
+    <div id="reservasContainer"></div>
+  </main>
+
+  <footer class="text-center small text-muted mt-5">
+    © 2025 Aeropuerto Internacional — Sistema de Reservas
+  </footer>
+
+  <script type="module">
+    import BaseDatos from './src/baseDatos.js';
+    import { cancelarReserva } from './src/controladores.js';
+    const db = new BaseDatos();
+
+    const user = sessionStorage.getItem('aero_user') ? JSON.parse(sessionStorage.getItem('aero_user')) : null;
+    const cont = document.getElementById('reservasContainer');
+
+    if(!user){
+      cont.innerHTML = '<div class="alert alert-warning">Debes iniciar sesión para ver tus reservas.</div>';
+    } else {
+      const reservas = db.obtenerReservasByUser(user.id);
+      if(!reservas.length){
+        cont.innerHTML = '<div class="alert alert-info">No tienes reservas registradas.</div>';
+      } else {
+        const html = reservas.map(r=>`
+          <div class="card mb-2 shadow-sm">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <div>
+                <div class="fw-semibold">${r.codigo}</div>
+                <div class="small text-muted">Vuelo: ${r.vueloId}</div>
+              </div>
+              <div>
+                <div class="small">Estado: ${r.estado}</div>
+                <button class="btn btn-sm btn-outline-danger" data-id="${r.id}">Cancelar</button>
+              </div>
+            </div>
+          </div>`).join('');
+        cont.innerHTML = `<h5 class="mb-3">Tus Reservas Actuales</h5>${html}`;
+        cont.querySelectorAll('button[data-id]').forEach(b=> 
+          b.addEventListener('click', e=>{
+            const id = e.target.getAttribute('data-id');
+            const res = cancelarReserva(id);
+            if(res.ok){
+              e.target.closest('.card').remove();
+              alert('Reserva cancelada con éxito');
+            } else alert('Error al cancelar');
+          })
+        );
+      }
+    }
+
+    document.getElementById('cerrarSesion').addEventListener('click', ()=>{
+      sessionStorage.removeItem('aero_user');
+      window.close();
+    });
+  </script>
+</body>
+</html>

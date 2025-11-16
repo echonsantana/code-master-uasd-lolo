@@ -1,10 +1,11 @@
 // src/interfaz.js
 import { listarVuelos, crearReserva, cancelarReserva, procesarPago } from './controladores.js';
 import BaseDatos from './baseDatos.js';
-import * as Interfaz from './interfaz.js';
+//import * as Interfaz from './interfaz.js';
 
 const container = document.getElementById('contenidoPrincipal'); // div donde mostrarás los vuelos
-Interfaz.renderVuelos(container);
+//Interfaz.renderVuelos(container);
+renderVuelos(container);
 
 const db = new BaseDatos();
 
@@ -113,7 +114,11 @@ function mostrarResultado(oferta) {
 /* --------------------------- Render Inicio --------------------------- */
 export function renderInicio(container) {
     container.innerHTML = heroHtml() + `
-     <section class="ofertas my-4">
+
+        
+
+    
+    <section class="ofertas my-4">
         <h4 class="text-center mb-3 text-white">Ofertas Especiales de la Semana</h4>
         <div class="row g-3">
         ${[
@@ -152,49 +157,49 @@ export function renderInicio(container) {
             {o:'Santo Domingo', d:'Sydney', p:1500, img:'sydney'},
             {o:'Punta Cana', d:'Toronto', p:620, img:'toronto3'}
         ].map(item => `
-      <div class="col-md-4 col-lg-3">
-        <div class="card h-100 border-0 shadow-sm">
+        <div class="col-md-4 col-lg-3">
+          <div class="card h-100 border-0 shadow-sm">
           <img src="https://picsum.photos/seed/${item.img}/600/300" class="card-img-top" alt="${item.d}">
           <div class="card-body text-center">
             <h6 class="card-title">${item.o} → ${item.d}</h6>
             <p class="text-muted small mb-1">Desde $${item.p} USD</p>
             <button class="btn btn-outline-primary btn-sm btn-reservar-oferta" data-origen="${item.o}" data-destino="${item.d}">Reservar ahora</button>
-          </div>
-        </div>
-      </div>
+                </div>
+              </div>
+            </div>
         `).join('')}
         </div>
     </section>
 
 
-    <!-- Aquí ponemos el contenedor para la tabla de vuelos -->
-    <div id="contenidoVuelos" class="mt-4"></div>
+        <!-- Aquí ponemos el contenedor para la tabla de vuelos -->
+        <div id="contenidoVuelos" class="mt-4"></div>
 
     
     
 
-    <div class="row">
-        <div class="col-lg-8"><div id="contenidoPrincipal"></div></div>
-        <div class="col-lg-15">
-            <div class="departures-horizontal" id="sideDepartures">
-                <h6>Próximos vuelos</h6>
-                <div id="tableroSmall"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Reserva -->
-    <div class="modal fade" id="modalReservaOferta" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content shadow-lg border-0 rounded-3 overflow-hidden">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Confirmar Reserva</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        <div class="row">
+            <div class="col-lg-8"><div id="contenidoPrincipal"></div></div>
+                <div class="col-lg-15">
+                     <div class="departures-horizontal" id="sideDepartures">
+                        <h6>Próximos vuelos</h6>
+                        <div id="tableroSmall"></div>
+                    </div>
                 </div>
-                <div class="modal-body" id="contenidoReservaModal"></div>
+            </div>
+
+                    <!-- Modal Reserva -->
+            <div class="modal fade" id="modalReservaOferta" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content shadow-lg border-0 rounded-3 overflow-hidden">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">Confirmar Reserva</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                    <div class="modal-body" id="contenidoReservaModal"></div>
+                </div>
             </div>
         </div>
-    </div>
 
     <!-- Modal Pago -->
     <div class="modal fade" id="modalPago" tabindex="-1">
@@ -242,8 +247,11 @@ export function renderInicio(container) {
     </div>
     `;
 
+
+
+
     // Datos de todos los vuelos
-const todosVuelos = [
+ const todosVuelos = [
     {origen:'Santo Domingo', destino:'París', fecha:'2025-11-20', precio:750},
     {origen:'Punta Cana', destino:'New York', fecha:'2025-11-21', precio:490},
     {origen:'Santo Domingo', destino:'Madrid', fecha:'2025-11-22', precio:680},
@@ -257,10 +265,10 @@ const todosVuelos = [
     {origen:'Punta Cana', destino:'Toronto', fecha:'2025-11-30', precio:600},
     {origen:'Santo Domingo', destino:'Lisboa', fecha:'2025-12-01', precio:650}
     // Agrega más vuelos según necesites
-];
+ ];
 
-// Función para mostrar la tabla
-function renderTablaVuelosAdmin() {
+ // Función para mostrar la tabla
+ function renderTablaVuelosAdmin() {
     const cont = document.getElementById('contenidoPrincipal');
     if (!cont) return;
 
@@ -324,28 +332,38 @@ function renderTablaVuelosAdmin() {
     });
 }
 
-
 // Listener del nav "Vuelos"
 const navVuelos = document.getElementById('nav-vuelos');
 if (navVuelos) {
     navVuelos.addEventListener('click', e => {
         e.preventDefault();
-        renderTablaVuelosAdmin(); // Solo aquí se ejecuta
+
+        const user = JSON.parse(localStorage.getItem('usuario_actual'));
+
+        if (!user) {
+            // Solución para evitar freeze
+            e.target.blur();  
+
+            toast("Debes iniciar sesión para ver los vuelos", "danger");
+
+            const modalLogin = document.getElementById('modalLogin');
+            const modal = new bootstrap.Modal(modalLogin);
+            modal.show();
+
+            return;  
+        }
+
+        renderTablaVuelosAdmin();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 }
 
-
-
-
-
-
     // -------------------- LÓGICA DE BÚSQUEDA CON HIGHLIGHT --------------------
 function limpiarInput(texto) {
     return texto.replace(/\s*\(.*\)/, '').trim().toLowerCase();
-}
+    }
 
-document.getElementById('buscarBtn')?.addEventListener('click', e => {
+ document.getElementById('buscarBtn')?.addEventListener('click', e => {
     e.preventDefault();
 
     const origen = limpiarInput(document.getElementById('f-origen').value);
@@ -379,9 +397,9 @@ document.getElementById('buscarBtn')?.addEventListener('click', e => {
             {o:'Santo Domingo', d:'Venecia', p:760, img:'venecia'},
             {o:'Santiago', d:'Lisboa', p:680, img:'lisboa2'},
             {o:'Santo Domingo', d:'Seul', p:1050, img:'seul'},
-            {o:'Punta Cana', d:'Los Ángeles', p:910, img:'losangeles2'},
+            {o:'Punta Cana', d:'Los Angeles', p:910, img:'losangeles2'},
             {o:'Santo Domingo', d:'Moscu', p:850, img:'moscu'},
-            {o:'Santiago', d:'París', p:780, img:'paris2'},
+            {o:'Santiago', d:'Paris', p:780, img:'paris2'},
             {o:'Punta Cana', d:'Miami', p:430, img:'miami3'},
             {o:'Santo Domingo', d:'San Francisco', p:970, img:'sanfrancisco'},
             {o:'Santo Domingo', d:'Sydney', p:1500, img:'sydney'},
@@ -414,6 +432,25 @@ document.getElementById('buscarBtn')?.addEventListener('click', e => {
                 </div>
             `).join('');
     }
+    // volver a activar los botones de reservar
+document.querySelectorAll('.btn-reservar-oferta').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const origen = btn.dataset.origen;
+        const destino = btn.dataset.destino;
+
+        const vuelo = {
+            id: 'oferta-' + Date.now(),
+            origen,
+            destino,
+            asientosTotales: 20,
+            asientosReservados: []
+        };
+
+        // abrir modal de reserva como ya tienes en tu función
+        renderReservaModal(vuelo);
+    });
+});
+
 });
 
 
