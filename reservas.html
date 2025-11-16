@@ -23,7 +23,7 @@
   <footer class="text-center small text-muted mt-5">
     © 2025 Aeropuerto Internacional — Sistema de Reservas
   </footer>
-
+<!--
   <script type="module">
     import BaseDatos from './src/baseDatos.js';
     import { cancelarReserva } from './src/controladores.js';
@@ -71,5 +71,106 @@
       window.close();
     });
   </script>
+  -->
+
+<script type="module">
+    import BaseDatos from './src/baseDatos.js';
+    import { cancelarReserva, obtenerReservasActivas } from './src/controladores.js';
+    const db = new BaseDatos();
+
+    // PASO 1: Cliente accede a Mis Reservas (ya implementado)
+    const user = sessionStorage.getItem('aero_user') ? JSON.parse(sessionStorage.getItem('aero_user')) : null;
+    const cont = document.getElementById('reservasContainer');
+
+    if(!user){
+        cont.innerHTML = '<div class="alert alert-warning">Debes iniciar sesión para ver tus reservas.</div>';
+    } else {
+        // PASO 2: Interfaz Web → Sistema de Reservas
+        console.log('🔄 Solicitando reservas activas para usuario:', user.id);
+        const resultado = obtenerReservasActivas(user.id);
+        
+        if(!resultado.ok){
+            cont.innerHTML = '<div class="alert alert-danger">Error al cargar las reservas.</div>';
+        } else {
+            const reservas = resultado.reservas;
+            
+            if(!reservas.length){
+                cont.innerHTML = '<div class="alert alert-info">No tienes reservas registradas.</div>';
+            } else {
+                // Mostrar estadísticas
+                cont.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="text-primary">
+                            <i class="bi bi-ticket-perforated"></i> Tus Reservas Activas
+                        </h4>
+                        <span class="badge bg-primary">${reservas.length} reserva(s)</span>
+                    </div>
+                `;
+                
+                // Generar lista de reservas
+                const html = reservas.map(r => `
+                    <div class="card mb-3 shadow-sm reserva-card">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h6 class="card-title text-primary">${r.codigo}</h6>
+                                    <p class="mb-1 small"><strong>Vuelo:</strong> ${r.vueloId}</p>
+                                    <p class="mb-1 small"><strong>Estado:</strong> <span class="badge bg-${getBadgeColor(r.estado)}">${r.estado}</span></p>
+                                    <p class="mb-0 small"><strong>Fecha:</strong> ${new Date(r.fecha).toLocaleDateString()}</p>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    ${r.estado === 'confirmada' || r.estado === 'pendiente' ? 
+                                        `<button class="btn btn-sm btn-outline-danger" data-id="${r.id}">
+                                            <i class="bi bi-x-circle"></i> Cancelar
+                                        </button>` : 
+                                        '<span class="text-muted small">No cancelable</span>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                cont.innerHTML += html;
+
+                // Configurar eventos de cancelación
+                cont.querySelectorAll('button[data-id]').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const id = e.target.getAttribute('data-id');
+                        const res = cancelarReserva(id);
+                        if(res.ok){
+                            e.target.closest('.card').remove();
+                            alert('Reserva cancelada con éxito');
+                            // Actualizar contador
+                            const badge = document.querySelector('.badge');
+                            if(badge) {
+                                const current = parseInt(badge.textContent);
+                                badge.textContent = `${current - 1} reserva(s)`;
+                            }
+                        } else {
+                            alert('Error al cancelar');
+                        }
+                    });
+                });
+            }
+        }
+    }
+
+    // Función auxiliar para colores de estado
+    function getBadgeColor(estado) {
+        const colores = {
+            'confirmada': 'success',
+            'pendiente': 'warning', 
+            'cancelada': 'danger',
+            'completada': 'info'
+        };
+        return colores[estado] || 'secondary';
+    }
+
+    document.getElementById('cerrarSesion').addEventListener('click', () => {
+        sessionStorage.removeItem('aero_user');
+        window.close();
+    });
+</script> 
 </body>
 </html>

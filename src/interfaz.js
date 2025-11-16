@@ -1,7 +1,215 @@
 // src/interfaz.js
 import { listarVuelos, crearReserva, cancelarReserva, procesarPago } from './controladores.js';
 import BaseDatos from './baseDatos.js';
+import { EmailService } from './services/emailService.js'; // ← Ruta correcta
 //import * as Interfaz from './interfaz.js';
+
+//
+// En interfaz.js - PRUEBA TEMPORAL
+// En interfaz.js - REEMPLAZA la función probarEmailService() con esto:
+
+/* --------------------------- Verificación de Email en Tiempo Real --------------------------- */
+function setupEmailVerification() {
+    const emailInput = document.getElementById('reg-email');
+    if (!emailInput) {
+        console.log('⚠️ Input de email no encontrado - tal vez el modal no está cargado');
+        return;
+    }
+
+    let verificationTimer;
+
+    emailInput.addEventListener('input', function(e) {
+        const email = e.target.value.trim();
+        
+        // Limpiar timer anterior
+        clearTimeout(verificationTimer);
+        
+        // Crear o obtener elemento de estado
+        let statusElement = document.getElementById('email-status');
+        if (!statusElement) {
+            statusElement = document.createElement('div');
+            statusElement.id = 'email-status';
+            statusElement.className = 'mt-1 small';
+            emailInput.parentNode.appendChild(statusElement);
+        }
+
+        if (!email) {
+            statusElement.innerHTML = '';
+            return;
+        }
+
+        // Validación básica de formato
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            statusElement.innerHTML = '<span class="text-warning">⏳ Formato de email inválido</span>';
+            return;
+        }
+
+        statusElement.innerHTML = '<span class="text-info">⏳ Verificando...</span>';
+
+        // Debounce: esperar 500ms después de que el usuario deje de escribir
+        verificationTimer = setTimeout(async () => {
+            try {
+                const resultado = await EmailService.verificarEmail(email);
+                
+                if (resultado.exists) {
+                    statusElement.innerHTML = '<span class="text-danger">❌ Email ya registrado</span>';
+                } else if (resultado.valid) {
+                    statusElement.innerHTML = '<span class="text-success">✅ Email disponible</span>';
+                } else {
+                    statusElement.innerHTML = `<span class="text-warning">⚠️ ${resultado.message}</span>`;
+                }
+            } catch (error) {
+                console.error('Error en verificación:', error);
+                statusElement.innerHTML = '<span class="text-danger">❌ Error verificando email</span>';
+            }
+        }, 500);
+    });
+}
+//
+
+
+/* ---------------------------FIN Verificación de Email en Tiempo Real --------------------------- */
+/*
+function setupEmailVerification() {
+    console.log('🎯 setupEmailVerification ejecutándose...');
+    
+    const emailInput = document.getElementById('regEmail');
+    console.log('📧 Input email encontrado:', emailInput);
+    
+    if (!emailInput) {
+        console.log('❌ Input de email NO encontrado - ID: regEmail');
+        return;
+    }
+
+    // ✅ PREVENIR EJECUCIÓN DUPLICADA
+    if (emailInput.hasAttribute('data-verification-setup')) {
+        console.log('⚠️ Verificación ya configurada, omitiendo...');
+        return;
+    }
+    
+    // Marcar que ya se configuró
+    emailInput.setAttribute('data-verification-setup', 'true');
+    
+    console.log('✅ Input email encontrado correctamente');
+    
+    let verificationTimer;
+
+    emailInput.addEventListener('input', function(e) {
+        const email = e.target.value.trim();
+        console.log('📝 Email escrito:', email);
+        
+        // Limpiar timer anterior
+        clearTimeout(verificationTimer);
+        
+        // Crear o obtener elemento de estado
+        let statusElement = document.getElementById('email-status');
+        if (!statusElement) {
+            statusElement = document.createElement('div');
+            statusElement.id = 'email-status';
+            statusElement.className = 'mt-1 small';
+            emailInput.parentNode.appendChild(statusElement);
+            console.log('✅ Elemento de estado creado');
+        }
+
+        if (!email) {
+            statusElement.innerHTML = '';
+            return;
+        }
+
+        // Validación básica de formato
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            statusElement.innerHTML = '<span class="text-warning">⏳ Formato de email inválido</span>';
+            console.log('⚠️ Formato de email inválido');
+            return;
+        }
+
+        statusElement.innerHTML = '<span class="text-info">⏳ Verificando...</span>';
+        console.log('🔍 Verificando email...');
+
+        // Debounce: esperar 500ms después de que el usuario deje de escribir
+        verificationTimer = setTimeout(async () => {
+            try {
+                console.log('📡 Llamando EmailService...');
+                const resultado = await EmailService.verificarEmail(email);
+                console.log('✅ Resultado:', resultado);
+                
+                if (resultado.exists) {
+                    statusElement.innerHTML = '<span class="text-danger">❌ Email ya registrado</span>';
+                } else if (resultado.valid) {
+                    statusElement.innerHTML = '<span class="text-success">✅ Email disponible</span>';
+                } else {
+                    statusElement.innerHTML = `<span class="text-warning">⚠️ ${resultado.message}</span>`;
+                }
+            } catch (error) {
+                console.error('❌ Error en verificación:', error);
+                statusElement.innerHTML = '<span class="text-danger">❌ Error verificando email</span>';
+            }
+        }, 500);
+    });
+    
+    console.log('✅ Event listener de email configurado correctamente');
+}
+*/
+
+// En interfaz.js - DESPUÉS de la función setupEmailVerification
+
+/* --------------------------- Inicializar cuando se abra el modal --------------------------- */
+function initializeModalEvents() {
+    // Cuando se haga clic en "Registrarse"
+    document.getElementById('btn-register')?.addEventListener('click', function() {
+        // Pequeño delay para asegurar que el modal esté visible
+        setTimeout(() => {
+            setupEmailVerification();
+        }, 100);
+    });
+
+    // También inicializar cuando el modal se muestre
+    const modalRegister = document.getElementById('modalRegister');
+    if (modalRegister) {
+        modalRegister.addEventListener('shown.bs.modal', function() {
+            setupEmailVerification();
+        });
+    }
+}
+
+
+/* --------------------------- PREUBA --------------------------- *
+function initializeModalEvents() {
+    console.log('🔄 Inicializando eventos de modal...');
+    
+    // Usar delegación de eventos para el botón "Registrarse"
+    document.addEventListener('click', function(e) {
+        if (e.target && e.target.id === 'btn-register') {
+            console.log('✅ Botón Registrarse clickeado');
+            
+            // Delay para que el modal se renderice completamente
+            setTimeout(() => {
+                console.log('🔧 Ejecutando setupEmailVerification...');
+                setupEmailVerification();
+            }, 300);
+        }
+    });
+
+    // También usar delegación para el evento del modal
+    document.addEventListener('shown.bs.modal', function(e) {
+        if (e.target && e.target.id === 'modalRegister') {
+            console.log('✅ Modal Register mostrado');
+            setupEmailVerification();
+        }
+    });
+}
+/* --------------------------- PREUBA --------------------------- */
+/* --------------------------- FIN cuando se abra el modal --------------------------- */
+
+
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    initializeModalEvents();
+});
+
 
 const container = document.getElementById('contenidoPrincipal'); // div donde mostrarás los vuelos
 //Interfaz.renderVuelos(container);
@@ -342,6 +550,9 @@ export function renderInicio(container) {
             renderReservaModal(vuelo);
         });
     });
+
+    // ✅ INICIALIZAR EVENTOS DEL MODAL
+    initializeModalEvents();
 }
 
 // Listener del nav "Vuelos"
@@ -350,7 +561,8 @@ if (navVuelos) {
     navVuelos.addEventListener('click', e => {
         e.preventDefault();
 
-        const user = JSON.parse(localStorage.getItem('usuario_actual'));
+        //const user = JSON.parse(localStorage.getItem('usuario_actual'));
+        const user = JSON.parse(sessionStorage.getItem('aero_user'));
 
         if (!user) {
             // Solución para evitar freeze
@@ -714,6 +926,7 @@ function renderReserva(container, vueloId) {
 
 /* --------------------------- Modal Reserva --------------------------- */
 function renderReservaModal(vuelo) {
+    console.log('🔍 MODAL RESERVA: Iniciando reserva para vuelo:', vuelo);
     const booked = vuelo.asientosReservados || [];
     let seats = '';
     for (let i = 1; i <= (vuelo.asientosTotales || 20); i++) {
@@ -750,6 +963,7 @@ function renderReservaModal(vuelo) {
     cont.querySelector('#cancelReserveModal')?.addEventListener('click', () => modal.hide());
 
     cont.querySelector('#confirmReserveModal')?.addEventListener('click', () => {
+         console.log('🔍 CONFIRMAR RESERVA: Botón clickeado');
         if (selected.size === 0) { toast('Selecciona al menos un asiento', 'warning'); return; }
         const user = getUser();
         if (!user) { 
@@ -758,6 +972,13 @@ function renderReservaModal(vuelo) {
             return; 
         }
         const asientos = Array.from(selected);
+
+        console.log('🔍 LLAMANDO crearReservaValida:', {
+            clienteId: user.id,
+            vueloId: vuelo.id,
+            asientos: asientos
+        });
+
         const res = crearReserva({ clienteId: user.id, vueloId: vuelo.id, asientos });
         if (!res || !res.ok) { toast('Error creando reserva', 'danger'); return; }
 

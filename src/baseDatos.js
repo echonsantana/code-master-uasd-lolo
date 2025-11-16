@@ -49,6 +49,40 @@ export default class BaseDatos {
   // ===== USUARIOS =====
   obtenerUsuarios() { return this.data.usuarios || []; }
 
+  //
+     // ✅ === MÉTODOS NUEVOS PARA VERIFICACIÓN DE EMAIL ===
+  
+  /**
+   * Verifica si un email ya está registrado en el sistema
+   * @param {string} email - Email a verificar
+   * @returns {boolean} - true si el email ya existe, false si está disponible
+   */
+  verificarEmailExistente(email) {
+    if (!email || typeof email !== 'string') return false;
+    
+    const emailNormalizado = email.toLowerCase().trim();
+    return (this.data.usuarios || []).some(user => 
+      user.email && user.email.toLowerCase().trim() === emailNormalizado
+    );
+  }
+
+  /**
+   * Busca un usuario por su email
+   * @param {string} email - Email a buscar
+   * @returns {Object|null} - Usuario encontrado o null
+   */
+  findUserByEmail(email) {
+    if (!email || typeof email !== 'string') return null;
+    
+    const emailNormalizado = email.toLowerCase().trim();
+    return (this.data.usuarios || []).find(user => 
+      user.email && user.email.toLowerCase().trim() === emailNormalizado
+    );
+  }
+  // ✅ === FIN DE MÉTODOS NUEVOS ===
+
+  //
+/*
   agregarUsuario(u) {
     this.data.usuarios = this.data.usuarios || [];
     const id = `u${this.data.usuarios.length + 1}`;
@@ -57,6 +91,31 @@ export default class BaseDatos {
     this._save();
     return nuevo;
   }
+    */
+
+  // PRUEBA
+  // En baseDatos.js - VERIFICAR que el método agregarUsuario sea así:
+agregarUsuario(u) {
+    this.data.usuarios = this.data.usuarios || [];
+    const id = `u${this.data.usuarios.length + 1}`;
+    
+    // ✅ Asegurar que se guarde el password si viene en el objeto
+    const nuevo = { 
+        id, 
+        nombre: u.nombre,
+        email: u.email,
+        password: u.password,  // ← ESTA LÍNEA ES CLAVE
+        rol: u.rol || 'cliente',
+        isVerified: u.isVerified || false,
+        createdAt: u.createdAt || new Date().toISOString()
+    };
+    
+    this.data.usuarios.push(nuevo);
+    this._save();
+    return nuevo;
+}
+
+  //
 
   actualizarUsuario(id, nuevosDatos) {
     const u = this.data.usuarios.find(x => x.id === id);

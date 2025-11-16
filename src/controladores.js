@@ -1,12 +1,19 @@
 // src/controladores.js
 import BaseDatos from './baseDatos.js'; // si no está arriba del todo, añádelo
-
 import BaseDB from './baseDatos.js';
+import { EmailNotificationService } from './services/emailNotificationService.js';
 
 const db = new BaseDB();
 function uid(prefix='id'){ return prefix + Math.random().toString(36).slice(2,9); }
 
+//
+
+
+
+//
+
 export function registrarUsuario({ nombre, email, pass }){
+  console.log('🔍 BUSCANDO USUARIO PARA EMAIL:', usuario);
   const u = db.obtenerUsuarios().find(x=> x.email===email);
   if(u) return { ok:false, msg:'Email ya registrado' };
   const nuevo = { id: uid('u'), nombre, email, pass };
@@ -30,10 +37,15 @@ export function crearReserva({ clienteId, vueloId, asientos }){
   return { ok:true, reserva };
 }
 
+
 //
 export function crearReservaValida({ clienteId, vueloId, asientos }) {
+  console.log('🔍 DIAGNÓSTICO: crearReservaValida EJECUTÁNDOSE', { clienteId, vueloId, asientos });
+
+  
   const vuelo = db.findVueloById(vueloId);
   if (!vuelo) {
+      console.log('❌ Vuelo no encontrado');
     toast('Vuelo no encontrado', 'danger');
     return null;
   }
@@ -71,9 +83,26 @@ export function crearReservaValida({ clienteId, vueloId, asientos }) {
   };
   db.crearReserva(reserva);
 
-  toast('Reserva creada correctamente', 'success');
+    // ✅ ENVIAR EMAIL DE RESERVA (SOLO ESTO ES NUEVO)
+  const usuario = db.obtenerUsuarios().find(u => u.id === clienteId);
+  if (usuario && usuario.email) {
+    EmailNotificationService.enviarEmailReserva(usuario.email, reserva, vuelo)
+      .then(resultado => {
+        if (resultado.success) {
+          console.log('📧 Email de reserva enviado exitosamente a:', usuario.email);
+        } else {
+          console.warn('⚠️ Email de reserva no pudo enviarse:', resultado.message);
+        }
+      })
+      .catch(error => {
+        console.error('❌ Error enviando email de reserva:', error);
+      });
+  }
+
+  toast('Reserva creada correctamente. Se ha enviado un email de confirmación.', 'success');
   return reserva;
 }
+
 
 //
 
@@ -116,3 +145,42 @@ export function procesarPago({ reservaId, numero, exp, cvv, nombre }) {
 
 
 export function obtenerPagos(){ return db.obtenerPagos(); }
+/*
+// ===== FUNCIONES PARA MIS RESERVAS =====
+export function obtenerReservasActivas(userId) {
+  const db = new BaseDatos();
+  const reservas = db.obtenerReservasByUser(userId);
+  
+  // Filtrar solo reservas activas (no canceladas)
+  const reservasActivas = reservas.filter(r => 
+    r.estado !== 'cancelada'
+  );
+  
+  return {
+    ok: true,
+    reservas: reservasActivas,
+    total: reservasActivas.length,
+    mensaje: `Se encontraron ${reservasActivas.length} reservas activas`
+  };
+} */
+
+export function obtenerReservasActivas(userId) {
+  const db = new BaseDatos();
+  const reservas = db.obtenerReservasByUser(userId);
+  
+  console.log('🔍 Reservas antes de filtrar:', reservas);
+  
+  // Filtrar SOLO reservas activas (no canceladas)
+  const reservasActivas = reservas.filter(r => 
+    r.estado !== 'cancelada'
+  );
+  
+  console.log('🔍 Reservas después de filtrar:', reservasActivas);
+  
+  return {
+    ok: true,
+    reservas: reservasActivas,
+    total: reservasActivas.length,
+    mensaje: `Se encontraron ${reservasActivas.length} reservas activas`
+  };
+}
