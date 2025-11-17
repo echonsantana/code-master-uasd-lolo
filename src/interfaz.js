@@ -1,220 +1,9 @@
 // src/interfaz.js
 import { listarVuelos, crearReserva, cancelarReserva, procesarPago } from './controladores.js';
 import BaseDatos from './baseDatos.js';
-import { EmailService } from './services/emailService.js'; // ← Ruta correcta
-//import * as Interfaz from './interfaz.js';
+import { EmailService } from './services/emailService.js';
 
-//
-// En interfaz.js - PRUEBA TEMPORAL
-// En interfaz.js - REEMPLAZA la función probarEmailService() con esto:
-
-/* --------------------------- Verificación de Email en Tiempo Real --------------------------- */
-function setupEmailVerification() {
-    const emailInput = document.getElementById('reg-email');
-    if (!emailInput) {
-        console.log('⚠️ Input de email no encontrado - tal vez el modal no está cargado');
-        return;
-    }
-
-    let verificationTimer;
-
-    emailInput.addEventListener('input', function(e) {
-        const email = e.target.value.trim();
-        
-        // Limpiar timer anterior
-        clearTimeout(verificationTimer);
-        
-        // Crear o obtener elemento de estado
-        let statusElement = document.getElementById('email-status');
-        if (!statusElement) {
-            statusElement = document.createElement('div');
-            statusElement.id = 'email-status';
-            statusElement.className = 'mt-1 small';
-            emailInput.parentNode.appendChild(statusElement);
-        }
-
-        if (!email) {
-            statusElement.innerHTML = '';
-            return;
-        }
-
-        // Validación básica de formato
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            statusElement.innerHTML = '<span class="text-warning">⏳ Formato de email inválido</span>';
-            return;
-        }
-
-        statusElement.innerHTML = '<span class="text-info">⏳ Verificando...</span>';
-
-        // Debounce: esperar 500ms después de que el usuario deje de escribir
-        verificationTimer = setTimeout(async () => {
-            try {
-                const resultado = await EmailService.verificarEmail(email);
-                
-                if (resultado.exists) {
-                    statusElement.innerHTML = '<span class="text-danger">❌ Email ya registrado</span>';
-                } else if (resultado.valid) {
-                    statusElement.innerHTML = '<span class="text-success">✅ Email disponible</span>';
-                } else {
-                    statusElement.innerHTML = `<span class="text-warning">⚠️ ${resultado.message}</span>`;
-                }
-            } catch (error) {
-                console.error('Error en verificación:', error);
-                statusElement.innerHTML = '<span class="text-danger">❌ Error verificando email</span>';
-            }
-        }, 500);
-    });
-}
-//
-
-
-/* ---------------------------FIN Verificación de Email en Tiempo Real --------------------------- */
-/*
-function setupEmailVerification() {
-    console.log('🎯 setupEmailVerification ejecutándose...');
-    
-    const emailInput = document.getElementById('regEmail');
-    console.log('📧 Input email encontrado:', emailInput);
-    
-    if (!emailInput) {
-        console.log('❌ Input de email NO encontrado - ID: regEmail');
-        return;
-    }
-
-    // ✅ PREVENIR EJECUCIÓN DUPLICADA
-    if (emailInput.hasAttribute('data-verification-setup')) {
-        console.log('⚠️ Verificación ya configurada, omitiendo...');
-        return;
-    }
-    
-    // Marcar que ya se configuró
-    emailInput.setAttribute('data-verification-setup', 'true');
-    
-    console.log('✅ Input email encontrado correctamente');
-    
-    let verificationTimer;
-
-    emailInput.addEventListener('input', function(e) {
-        const email = e.target.value.trim();
-        console.log('📝 Email escrito:', email);
-        
-        // Limpiar timer anterior
-        clearTimeout(verificationTimer);
-        
-        // Crear o obtener elemento de estado
-        let statusElement = document.getElementById('email-status');
-        if (!statusElement) {
-            statusElement = document.createElement('div');
-            statusElement.id = 'email-status';
-            statusElement.className = 'mt-1 small';
-            emailInput.parentNode.appendChild(statusElement);
-            console.log('✅ Elemento de estado creado');
-        }
-
-        if (!email) {
-            statusElement.innerHTML = '';
-            return;
-        }
-
-        // Validación básica de formato
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            statusElement.innerHTML = '<span class="text-warning">⏳ Formato de email inválido</span>';
-            console.log('⚠️ Formato de email inválido');
-            return;
-        }
-
-        statusElement.innerHTML = '<span class="text-info">⏳ Verificando...</span>';
-        console.log('🔍 Verificando email...');
-
-        // Debounce: esperar 500ms después de que el usuario deje de escribir
-        verificationTimer = setTimeout(async () => {
-            try {
-                console.log('📡 Llamando EmailService...');
-                const resultado = await EmailService.verificarEmail(email);
-                console.log('✅ Resultado:', resultado);
-                
-                if (resultado.exists) {
-                    statusElement.innerHTML = '<span class="text-danger">❌ Email ya registrado</span>';
-                } else if (resultado.valid) {
-                    statusElement.innerHTML = '<span class="text-success">✅ Email disponible</span>';
-                } else {
-                    statusElement.innerHTML = `<span class="text-warning">⚠️ ${resultado.message}</span>`;
-                }
-            } catch (error) {
-                console.error('❌ Error en verificación:', error);
-                statusElement.innerHTML = '<span class="text-danger">❌ Error verificando email</span>';
-            }
-        }, 500);
-    });
-    
-    console.log('✅ Event listener de email configurado correctamente');
-}
-*/
-
-// En interfaz.js - DESPUÉS de la función setupEmailVerification
-
-/* --------------------------- Inicializar cuando se abra el modal --------------------------- */
-function initializeModalEvents() {
-    // Cuando se haga clic en "Registrarse"
-    document.getElementById('btn-register')?.addEventListener('click', function() {
-        // Pequeño delay para asegurar que el modal esté visible
-        setTimeout(() => {
-            setupEmailVerification();
-        }, 100);
-    });
-
-    // También inicializar cuando el modal se muestre
-    const modalRegister = document.getElementById('modalRegister');
-    if (modalRegister) {
-        modalRegister.addEventListener('shown.bs.modal', function() {
-            setupEmailVerification();
-        });
-    }
-}
-
-
-/* --------------------------- PREUBA --------------------------- *
-function initializeModalEvents() {
-    console.log('🔄 Inicializando eventos de modal...');
-    
-    // Usar delegación de eventos para el botón "Registrarse"
-    document.addEventListener('click', function(e) {
-        if (e.target && e.target.id === 'btn-register') {
-            console.log('✅ Botón Registrarse clickeado');
-            
-            // Delay para que el modal se renderice completamente
-            setTimeout(() => {
-                console.log('🔧 Ejecutando setupEmailVerification...');
-                setupEmailVerification();
-            }, 300);
-        }
-    });
-
-    // También usar delegación para el evento del modal
-    document.addEventListener('shown.bs.modal', function(e) {
-        if (e.target && e.target.id === 'modalRegister') {
-            console.log('✅ Modal Register mostrado');
-            setupEmailVerification();
-        }
-    });
-}
-/* --------------------------- PREUBA --------------------------- */
-/* --------------------------- FIN cuando se abra el modal --------------------------- */
-
-
-
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    initializeModalEvents();
-});
-
-
-const container = document.getElementById('contenidoPrincipal'); // div donde mostrarás los vuelos
-//Interfaz.renderVuelos(container);
-renderVuelos(container);
-
+const container = document.getElementById('contenidoPrincipal');
 const db = new BaseDatos();
 
 const modalPagoEl = document.getElementById('modalPago');
@@ -222,9 +11,6 @@ let modalPago = null;
 if (modalPagoEl) {
     modalPago = new bootstrap.Modal(modalPagoEl, { backdrop: 'static', keyboard: false });
 }
-
-
-
 
 /* --------------------------- Utilidades --------------------------- */
 function toast(msg, type = 'primary') {
@@ -262,9 +48,8 @@ function heroHtml() {
             <div class="d-flex justify-content-between align-items-center">
                 <!-- Navbar -->
                 <span class="navbar-brand text-illuminated fw-bold fs-3" id="brand">
-                        Animate al vuelo y en las nubes exploremos el código 
+                        Diseñamos Soluciones y Construimos futuro 
                 </span>
-
 
             <div class="text-end">
                 ${user 
@@ -304,37 +89,11 @@ function heroHtml() {
     </div>
     `;
 }
-//
-
-function mostrarResultado(oferta) {
-    const cont = document.querySelector('.ofertas .ofertas-carrusel');
-
-    if(!cont) return;
-
-    if(!oferta) {
-        cont.innerHTML = `<p class="text-center w-100 text-white">❌ No se encontraron vuelos para esta búsqueda.</p>`;
-        return;
-    }
-
-    cont.innerHTML = `
-      <div class="card mx-2" style="min-width: 250px; flex: 0 0 auto;">
-        <img src="https://picsum.photos/seed/${oferta.img}/600/300" class="card-img-top" alt="${oferta.d}">
-        <div class="card-body text-center">
-          <h6 class="card-title">${oferta.o} → ${oferta.d}</h6>
-          <p class="text-muted small mb-1">Desde $${oferta.p} USD</p>
-          <button class="btn btn-outline-primary btn-sm btn-reservar-oferta" data-origen="${oferta.o}" data-destino="${oferta.d}">Reservar ahora</button>
-        </div>
-      </div>
-    `;
-}
 
 /* --------------------------- Render Inicio --------------------------- */
 export function renderInicio(container) {
     container.innerHTML = heroHtml() + `
 
-        
-
-    
     <section class="ofertas my-4">
         <h4 class="text-center mb-3 text-white">Ofertas Especiales de la Semana</h4>
         <div class="row g-3">
@@ -357,7 +116,6 @@ export function renderInicio(container) {
             {o:'Santo Domingo', d:'Cancun', p:470, img:'cancun'},
             {o:'Santo Domingo', d:'Berlin', p:800, img:'berlin'},
             {o:'Punta Cana', d:'Los Angeles', p:900, img:'losangeles'},
-            // Nuevas ofertas
             {o:'Santo Domingo', d:'Tokio', p:1100, img:'tokyo'},
             {o:'Punta Cana', d:'Hong Kong', p:1200, img:'hongkong'},
             {o:'Santo Domingo', d:'Dubai', p:950, img:'dubai'},
@@ -380,7 +138,12 @@ export function renderInicio(container) {
           <div class="card-body text-center">
             <h6 class="card-title">${item.o} → ${item.d}</h6>
             <p class="text-muted small mb-1">Desde $${item.p} USD</p>
-            <button class="btn btn-outline-primary btn-sm btn-reservar-oferta" data-origen="${item.o}" data-destino="${item.d}">Reservar ahora</button>
+            <button class="btn btn-outline-primary btn-sm btn-reservar-oferta" 
+                    data-origen="${item.o}" 
+                    data-destino="${item.d}"
+                    data-precio="${item.p}">
+                Reservar ahora
+            </button>
                 </div>
               </div>
             </div>
@@ -388,12 +151,7 @@ export function renderInicio(container) {
         </div>
     </section>
 
-
-        <!-- Aquí ponemos el contenedor para la tabla de vuelos -->
         <div id="contenidoVuelos" class="mt-4"></div>
-
-    
-    
 
         <div class="row">
     <div class="col-lg-8">
@@ -422,7 +180,6 @@ export function renderInicio(container) {
     </div>
 </div>
 
-<!-- Modal Pago -->
 <!-- Modal de Pago -->
 <div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
@@ -463,12 +220,7 @@ export function renderInicio(container) {
     </div>
   </div>
 </div>
-
-
     `;
-
-
-
 
     // Datos de todos los vuelos
  const todosVuelos = [
@@ -484,20 +236,19 @@ export function renderInicio(container) {
     {origen:'Santiago', destino:'Madrid', fecha:'2025-11-29', precio:700},
     {origen:'Punta Cana', destino:'Toronto', fecha:'2025-11-30', precio:600},
     {origen:'Santo Domingo', destino:'Lisboa', fecha:'2025-12-01', precio:650}
-    // Agrega más vuelos según necesites
- ];
+    ];
 
  // Función para mostrar la tabla
- function renderTablaVuelosAdmin() {
-    const cont = document.getElementById('contenidoPrincipal');
-    if (!cont) return;
-
-    let html = `
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h4 class="text-white">📋 Todos los Vuelos Disponibles</h4>
-        <button id="btnCerrarTabla" class="btn btn-sm btn-outline-light">Cerrar</button>
-    </div>
-    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+    function renderTablaVuelosAdmin() {
+        const cont = document.getElementById('contenidoPrincipal');
+        if (!cont) return;
+    
+        let html = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h4 class="text-white">📋 Todos los Vuelos Disponibles</h4>
+            <button id="btnCerrarTabla" class="btn btn-sm btn-outline-light">Cerrar</button>
+        </div>
+        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
         <table class="table table-striped table-hover text-white">
             <thead class="table-dark">
                 <tr>
@@ -528,18 +279,18 @@ export function renderInicio(container) {
                 `).join('')}
             </tbody>
         </table>
-    </div>
-    `;
+        </div>
+        `;
 
-    cont.innerHTML = html;
+        cont.innerHTML = html;
 
-    // Botón cerrar
-    document.getElementById('btnCerrarTabla').addEventListener('click', () => {
-        cont.innerHTML = ''; // borra la tabla
-    });
+        // Botón cerrar
+        document.getElementById('btnCerrarTabla').addEventListener('click', () => {
+        cont.innerHTML = '';
+     });
 
-    // Eventos de botones de reservar
-    document.querySelectorAll('.btn-reservar').forEach(btn => {
+     // Eventos de botones de reservar
+     document.querySelectorAll('.btn-reservar').forEach(btn => {
         btn.addEventListener('click', () => {
             const vuelo = {
                 origen: btn.dataset.origen,
@@ -550,9 +301,6 @@ export function renderInicio(container) {
             renderReservaModal(vuelo);
         });
     });
-
-    // ✅ INICIALIZAR EVENTOS DEL MODAL
-    initializeModalEvents();
 }
 
 // Listener del nav "Vuelos"
@@ -561,20 +309,15 @@ if (navVuelos) {
     navVuelos.addEventListener('click', e => {
         e.preventDefault();
 
-        //const user = JSON.parse(localStorage.getItem('usuario_actual'));
         const user = JSON.parse(sessionStorage.getItem('aero_user'));
 
         if (!user) {
-            // Solución para evitar freeze
-            e.target.blur();  
-
+            e.target.blur();
             toast("Debes iniciar sesión para ver los vuelos", "danger");
-
             const modalLogin = document.getElementById('modalLogin');
             const modal = new bootstrap.Modal(modalLogin);
             modal.show();
-
-            return;  
+            return;
         }
 
         renderTablaVuelosAdmin();
@@ -595,39 +338,38 @@ function limpiarInput(texto) {
 
     const ofertasSemana = [
         {o:'Santo Domingo', d:'Paris', p:750, img:'paris'},
-            {o:'Punta Cana', d:'New York', p:490, img:'newyork'},
-            {o:'Santo Domingo', d:'Madrid', p:680, img:'madrid'},
-            {o:'Santiago', d:'Miami', p:420, img:'miami'},
-            {o:'Santo Domingo', d:'Buenos Aires', p:810, img:'buenosaires'},
-            {o:'Punta Cana', d:'Londres', p:920, img:'london'},
-            {o:'Santo Domingo', d:'Panama', p:250, img:'panama'},
-            {o:'Santo Domingo', d:'Ciudad de Mexico', p:540, img:'mexico'},
-            {o:'Santo Domingo', d:'Toronto', p:630, img:'toronto'},
-            {o:'Santiago', d:'Madrid', p:700, img:'madrid2'},
-            {o:'Punta Cana', d:'Toronto', p:600, img:'toronto2'},
-            {o:'Santo Domingo', d:'Lisboa', p:650, img:'lisboa'},
-            {o:'Santo Domingo', d:'Roma', p:720, img:'roma'},
-            {o:'Santiago', d:'Miami', p:430, img:'miami2'},
-            {o:'Punta Cana', d:'Chicago', p:560, img:'chicago'},
-            {o:'Santo Domingo', d:'Cancun', p:470, img:'cancun'},
-            {o:'Santo Domingo', d:'Berlin', p:800, img:'berlin'},
-            {o:'Punta Cana', d:'Los Angeles', p:900, img:'losangeles'},
-            // Nuevas ofertas
-            {o:'Santo Domingo', d:'Tokio', p:1100, img:'tokyo'},
-            {o:'Punta Cana', d:'Hong Kong', p:1200, img:'hongkong'},
-            {o:'Santo Domingo', d:'Dubai', p:950, img:'dubai'},
-            {o:'Santiago', d:'Barcelona', p:700, img:'barcelona'},
-            {o:'Punta Cana', d:'Amsterdam', p:880, img:'amsterdam'},
-            {o:'Santo Domingo', d:'Venecia', p:760, img:'venecia'},
-            {o:'Santiago', d:'Lisboa', p:680, img:'lisboa2'},
-            {o:'Santo Domingo', d:'Seul', p:1050, img:'seul'},
-            {o:'Punta Cana', d:'Los Angeles', p:910, img:'losangeles2'},
-            {o:'Santo Domingo', d:'Moscu', p:850, img:'moscu'},
-            {o:'Santiago', d:'Paris', p:780, img:'paris2'},
-            {o:'Punta Cana', d:'Miami', p:430, img:'miami3'},
-            {o:'Santo Domingo', d:'San Francisco', p:970, img:'sanfrancisco'},
-            {o:'Santo Domingo', d:'Sydney', p:1500, img:'sydney'},
-            {o:'Punta Cana', d:'Toronto', p:620, img:'toronto3'}
+        {o:'Punta Cana', d:'New York', p:490, img:'newyork'},
+        {o:'Santo Domingo', d:'Madrid', p:680, img:'madrid'},
+        {o:'Santiago', d:'Miami', p:420, img:'miami'},
+        {o:'Santo Domingo', d:'Buenos Aires', p:810, img:'buenosaires'},
+        {o:'Punta Cana', d:'Londres', p:920, img:'london'},
+        {o:'Santo Domingo', d:'Panama', p:250, img:'panama'},
+        {o:'Santo Domingo', d:'Ciudad de Mexico', p:540, img:'mexico'},
+        {o:'Santo Domingo', d:'Toronto', p:630, img:'toronto'},
+        {o:'Santiago', d:'Madrid', p:700, img:'madrid2'},
+        {o:'Punta Cana', d:'Toronto', p:600, img:'toronto2'},
+        {o:'Santo Domingo', d:'Lisboa', p:650, img:'lisboa'},
+        {o:'Santo Domingo', d:'Roma', p:720, img:'roma'},
+        {o:'Santiago', d:'Miami', p:430, img:'miami2'},
+        {o:'Punta Cana', d:'Chicago', p:560, img:'chicago'},
+        {o:'Santo Domingo', d:'Cancun', p:470, img:'cancun'},
+        {o:'Santo Domingo', d:'Berlin', p:800, img:'berlin'},
+        {o:'Punta Cana', d:'Los Angeles', p:900, img:'losangeles'},
+        {o:'Santo Domingo', d:'Tokio', p:1100, img:'tokyo'},
+        {o:'Punta Cana', d:'Hong Kong', p:1200, img:'hongkong'},
+        {o:'Santo Domingo', d:'Dubai', p:950, img:'dubai'},
+        {o:'Santiago', d:'Barcelona', p:700, img:'barcelona'},
+        {o:'Punta Cana', d:'Amsterdam', p:880, img:'amsterdam'},
+        {o:'Santo Domingo', d:'Venecia', p:760, img:'venecia'},
+        {o:'Santiago', d:'Lisboa', p:680, img:'lisboa2'},
+        {o:'Santo Domingo', d:'Seul', p:1050, img:'seul'},
+        {o:'Punta Cana', d:'Los Angeles', p:910, img:'losangeles2'},
+        {o:'Santo Domingo', d:'Moscu', p:850, img:'moscu'},
+        {o:'Santiago', d:'Paris', p:780, img:'paris2'},
+        {o:'Punta Cana', d:'Miami', p:430, img:'miami3'},
+        {o:'Santo Domingo', d:'San Francisco', p:970, img:'sanfrancisco'},
+        {o:'Santo Domingo', d:'Sydney', p:1500, img:'sydney'},
+        {o:'Punta Cana', d:'Toronto', p:620, img:'toronto3'}
     ];
 
     const resultados = ofertasSemana.filter(item => 
@@ -650,34 +392,46 @@ function limpiarInput(texto) {
                         <div class="card-body text-center">
                             <h6 class="card-title text-primary fw-bold">${item.o} → ${item.d}</h6>
                             <p class="text-muted small mb-1">Desde $${item.p} USD</p>
-                            <button class="btn btn-outline-success btn-sm btn-reservar-oferta" data-origen="${item.o}" data-destino="${item.d}">Reservar ahora</button>
+                            <button class="btn btn-outline-success btn-sm btn-reservar-oferta" 
+                                    data-origen="${item.o}" 
+                                    data-destino="${item.d}"
+                                    data-precio="${item.p}">
+                                Reservar ahora
+                            </button>
                         </div>
                     </div>
                 </div>
             `).join('');
     }
-    // volver a activar los botones de reservar
-document.querySelectorAll('.btn-reservar-oferta').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const origen = btn.dataset.origen;
-        const destino = btn.dataset.destino;
 
-        const vuelo = {
-            id: 'oferta-' + Date.now(),
-            origen,
-            destino,
-            asientosTotales: 20,
-            asientosReservados: []
-        };
+    // Configurar event listeners para los nuevos botones
+    document.querySelectorAll('.btn-reservar-oferta').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const origen = btn.dataset.origen;
+            const destino = btn.dataset.destino;
+            const precio = btn.dataset.precio;
 
-        // abrir modal de reserva como ya tienes en tu función
-        renderReservaModal(vuelo);
+            console.log('🎫 OFERTA SELECCIONADA DESDE BÚSQUEDA:', { origen, destino, precio });
+
+            const vuelo = {
+                id: 'OF-' + Date.now(),
+                origen: origen,
+                destino: destino,
+                precio: parseInt(precio) || 100,
+                asientosTotales: 40,
+                asientosReservados: [],
+                clases: ['A', 'B', 'C', 'D'],
+                filas: 10,
+                aerolinea: 'AeroPremium International',
+                numero: 'OF' + Math.floor(Math.random() * 1000),
+                fecha: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                puerta: 'A' + Math.floor(Math.random() * 30) + 1
+            };
+
+            renderReservaModal(vuelo);
+        });
     });
 });
-
-});
-
-
 
     document.getElementById('btn-login')?.addEventListener('click', () => 
         new bootstrap.Modal(document.getElementById('modalLogin')).show()
@@ -699,6 +453,44 @@ document.querySelectorAll('.btn-reservar-oferta').forEach(btn => {
 
     renderTableroSmall();
 
+    // CONFIGURACIÓN CORREGIDA DE LOS BOTONES "RESERVAR AHORA"
+    document.querySelectorAll('.btn-reservar-oferta').forEach(btn => {
+        btn.addEventListener('click', e => {
+            e.preventDefault();
+            const origen = btn.dataset.origen;
+            const destino = btn.dataset.destino;
+            const precio = btn.dataset.precio;
+
+            console.log('🎫 OFERTA SELECCIONADA:', { origen, destino, precio });
+
+            const user = getUser();
+            if (!user) {
+                sessionStorage.setItem('ofertaPendiente', destino);
+                toast('Debes iniciar sesión para reservar esta oferta', 'warning');
+                new bootstrap.Modal(document.getElementById('modalLogin')).show();
+                return;
+            }
+
+            // Crear objeto vuelo con TODOS los datos de la oferta
+            const vuelo = {
+                id: 'OF-' + Date.now(),
+                origen: origen,
+                destino: destino,
+                precio: parseInt(precio) || 100,
+                asientosTotales: 40,
+                asientosReservados: [],
+                clases: ['A', 'B', 'C', 'D'],
+                filas: 10,
+                aerolinea: 'AeroPremium International',
+                numero: 'OF' + Math.floor(Math.random() * 1000),
+                fecha: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                puerta: 'A' + Math.floor(Math.random() * 30) + 1
+            };
+
+            renderReservaModal(vuelo);
+        });
+    });
+
     const ofertaPendiente = sessionStorage.getItem('ofertaPendiente');
     const user = getUser();
     if (ofertaPendiente && user) {
@@ -710,120 +502,457 @@ document.querySelectorAll('.btn-reservar-oferta').forEach(btn => {
             sessionStorage.removeItem('ofertaPendiente');
         }
     }
-
-    document.querySelectorAll('.btn-reservar-oferta').forEach(btn => {
-    btn.addEventListener('click', e => {
-        e.preventDefault();
-        const destino = btn.dataset.destino || '';
-        const user = getUser(); // tu función que obtiene usuario de sessionStorage
-        if (!user) {
-            sessionStorage.setItem('ofertaPendiente', destino);
-            toast('Debes iniciar sesión para reservar esta oferta', 'warning');
-            new bootstrap.Modal(document.getElementById('modalLogin')).show();
-            return;
-        }
-
-        const vuelos = listarVuelos();
-        const busc = normalize(destino);
-        let vuelo = vuelos.find(v => normalize(v.destino).includes(busc)) || vuelos[0];
-        if (!vuelo) { 
-            toast('No se encontró vuelo para esta oferta', 'danger'); 
-            return; 
-        }
-        renderReservaModal(vuelo); // abre el modal de reserva
-    });
- });
-
 }
 
+/* ==================== SISTEMA DE ASIENTOS POR CLASE ==================== */
 
+// Función para generar asientos disponibles
+function generarAsientosDisponibles(vuelo, booked) {
+    const asientos = [];
+    const clases = vuelo.clases || ['A', 'B', 'C', 'D'];
+    const filas = vuelo.filas || 10;
+    
+    for (let fila = 1; fila <= filas; fila++) {
+        for (let clase of clases) {
+            asientos.push(`${clase}${fila}`);
+        }
+    }
+    return asientos;
+}
 
-/* --------------------------- Modal Reserva --------------------------- 
-function renderReservaModal(vuelo) {
-    const booked = vuelo.asientosReservados || [];
-    let seats = '';
-    for (let i = 1; i <= (vuelo.asientosTotales || 20); i++) {
-        const cls = booked.includes(i) ? 'seat booked' : 'seat';
-        seats += `<div class="${cls}" data-seat="${i}">${i}</div>`;
+// Función para generar el layout visual de asientos
+function generarLayoutAsientos(asientosDisponibles, booked) {
+    const clases = ['A', 'B', 'C', 'D'];
+    const filas = 10;
+    let html = '';
+    
+    for (let fila = 1; fila <= filas; fila++) {
+        html += `<div class="seat-row mb-2 d-flex justify-content-center align-items-center">`;
+        html += `<div class="row-number me-2 fw-bold text-white">${fila}</div>`;
+        
+        for (let clase of clases) {
+            const asiento = `${clase}${fila}`;
+            const estaOcupado = booked.includes(asiento);
+            const estaDisponible = asientosDisponibles.includes(asiento);
+            let seatClass = 'seat';
+            
+            if (estaOcupado) {
+                seatClass += ' occupied';
+            } else if (estaDisponible) {
+                seatClass += ' available';
+            } else {
+                seatClass += ' unavailable';
+            }
+            
+            // Agregar separación entre B y C (pasillo)
+            if (clase === 'C') {
+                html += `<div class="aisle-spacer"></div>`;
+            }
+            
+            html += `<div class="${seatClass}" data-seat="${asiento}" data-fila="${fila}" data-clase="${clase}">
+                ${asiento}
+            </div>`;
+        }
+        
+        html += `</div>`;
+    }
+    
+    return html;
+}
+
+// Configurar eventos de los asientos
+function configurarEventosAsientos(selected, vuelo) {
+    document.querySelectorAll('.seat.available').forEach(asientoEl => {
+        asientoEl.addEventListener('click', () => {
+            const numeroAsiento = asientoEl.dataset.seat;
+            
+            if (selected.has(numeroAsiento)) {
+                // Deseleccionar
+                selected.delete(numeroAsiento);
+                asientoEl.classList.remove('selected');
+            } else {
+                // Seleccionar
+                selected.add(numeroAsiento);
+                asientoEl.classList.add('selected');
+            }
+            
+            actualizarResumenSeleccion(selected, vuelo);
+        });
+    });
+}
+
+// Actualizar resumen de selección
+function actualizarResumenSeleccion(selected, vuelo) {
+    const listaElement = document.getElementById('selectedSeatsList');
+    const totalElement = document.getElementById('selectedSeatsTotal');
+    
+    if (!listaElement || !totalElement) return;
+    
+    const asientosArray = Array.from(selected);
+    
+    if (asientosArray.length === 0) {
+        listaElement.textContent = 'Ninguno';
+        totalElement.textContent = 'Total: $0';
+    } else {
+        listaElement.textContent = asientosArray.join(', ');
+        const total = asientosArray.length * (vuelo.precio || vuelo.tarifa || 0);
+        totalElement.textContent = `Total: $${total}`;
+    }
+}
+
+// Confirmar reserva
+function confirmarReserva(selected, vuelo, user, modal) {
+    if (selected.size === 0) {
+        toast('Selecciona al menos un asiento', 'warning');
+        return;
+    }
+    
+    if (!user) {
+        toast('Inicia sesión para reservar', 'warning');
+        new bootstrap.Modal(document.getElementById('modalLogin')).show();
+        return;
+    }
+    
+    const asientos = Array.from(selected);
+    
+    console.log('🔍 CREANDO RESERVA CON ASIENTOS:', {
+        clienteId: user.id,
+        vueloId: vuelo.id,
+        asientos: asientos
+    });
+
+    const res = crearReserva({ 
+        clienteId: user.id, 
+        vueloId: vuelo.id, 
+        asientos: asientos 
+    });
+    
+    if (!res || !res.ok) {
+        toast('Error creando reserva', 'danger');
+        return;
     }
 
+    modal.hide();
+    abrirPago(res.reserva.id);
+}
+
+/* --------------------------- Modal Reserva CON CLASES PREMIUM --------------------------- */
+function renderReservaModal(vuelo) {
+    console.log('🔍 MODAL RESERVA PREMIUM: Iniciando reserva para vuelo:', vuelo);
+    
+    // VERIFICAR: Asegurarnos que estamos recibiendo los datos correctos
+    console.log('📊 Datos del vuelo recibidos:', {
+        origen: vuelo.origen,
+        destino: vuelo.destino,
+        precio: vuelo.precio,
+        id: vuelo.id
+    });
+    
+    const booked = vuelo.asientosReservados || [];
+    const asientosDisponibles = generarAsientosDisponibles(vuelo, booked);
+    const user = getUser();
+    
     const cont = document.getElementById('contenidoReservaModal');
     if (!cont) return;
 
+    // USAR LOS DATOS REALES DEL VUELO, NO DATOS FIJOS
     cont.innerHTML = `
-        <div>
-            <h5 class="mb-3 text-center">${vuelo.origen} → ${vuelo.destino}</h5>
-            <div class="seat-grid mb-3 d-flex justify-content-center flex-wrap">${seats}</div>
+        <div class="reserva-modal-content">
+            <h5 class="mb-3 text-center text-white">${vuelo.origen || 'Origen'} → ${vuelo.destino || 'Destino'}</h5>
+            
+            <div class="flight-info mb-3 p-3 bg-light rounded">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <small class="text-muted">Vuelo</small>
+                        <div class="fw-bold">${vuelo.numero || vuelo.id || 'N/A'}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Fecha</small>
+                        <div class="fw-bold">${vuelo.fecha || 'Fecha disponible'}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Aerolínea</small>
+                        <div class="fw-bold">${vuelo.aerolinea || 'Aerolínea Premium'}</div>
+                    </div>
+                    <div class="col-md-3">
+                        <small class="text-muted">Precio base</small>
+                        <div class="fw-bold">$${vuelo.precio || vuelo.tarifa || 0} USD</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Selector de Clases -->
+            <div class="clase-selector">
+                <h6 class="text-center mb-3 text-white">Selecciona tu clase</h6>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <div class="clase-option clase-economica selected" data-clase="economica">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Económica</strong>
+                                    <div class="clase-caracteristicas">Asiento estándar + Servicio básico</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">$${vuelo.precio || vuelo.tarifa || 0}</div>
+                                    <small class="text-muted">por persona</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <div class="clase-option clase-economicaPlus" data-clase="economicaPlus">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Económica Plus</strong>
+                                    <div class="clase-caracteristicas">Más espacio + Embarque prioritario</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">$${Math.round((vuelo.precio || vuelo.tarifa || 0) * 1.3)}</div>
+                                    <small class="text-muted">por persona</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <div class="clase-option clase-business" data-clase="business">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Business</strong>
+                                    <div class="clase-caracteristicas">Asientos reclinables + Comida gourmet</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">$${Math.round((vuelo.precio || vuelo.tarifa || 0) * 2.0)}</div>
+                                    <small class="text-muted">por persona</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <div class="clase-option clase-primera" data-clase="primera">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Primera Clase</strong>
+                                    <div class="clase-caracteristicas">Suite privada + Servicio premium</div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold">$${Math.round((vuelo.precio || vuelo.tarifa || 0) * 3.5)}</div>
+                                    <small class="text-muted">por persona</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mapa del Avión -->
+            <div class="aircraft-model">
+                <div class="overhead-bins"></div>
+                <div class="cabin-sections">
+                    <div class="cabin-section section-primera">
+                        <div class="section-label">Primera</div>
+                        <small class="text-white">Filas 1-3</small>
+                    </div>
+                    <div class="cabin-section section-business">
+                        <div class="section-label">Business</div>
+                        <small class="text-white">Filas 4-7</small>
+                    </div>
+                    <div class="cabin-section section-economica-plus">
+                        <div class="section-label">Económica+</div>
+                        <small class="text-white">Filas 8-14</small>
+                    </div>
+                    <div class="cabin-section section-economica">
+                        <div class="section-label">Económica</div>
+                        <small class="text-white">Filas 15-30</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="seat-selection-container">
+                <h6 class="text-center mb-3 text-white">Selecciona tus asientos</h6>
+                
+                <!-- Leyenda Mejorada -->
+                <div class="seat-legend mb-3 d-flex justify-content-center gap-3 flex-wrap">
+                    <div class="d-flex align-items-center">
+                        <div class="seat available me-2"></div>
+                        <small class="text-white">Disponible</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="seat selected me-2"></div>
+                        <small class="text-white">Seleccionado</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="seat occupied me-2"></div>
+                        <small class="text-white">Ocupado</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="seat premium me-2"></div>
+                        <small class="text-white">Premium</small>
+                    </div>
+                </div>
+                
+                <!-- Mapa de asientos premium -->
+                <div class="seat-map-3d">
+                    <div class="airplane-cabin text-center mb-4">
+                        <div class="cockpit mb-3">
+                            <div class="cockpit-shape">✈️ CABINA DE PILOTOS</div>
+                        </div>
+                        
+                        <!-- Asientos organizados por clase -->
+                        <div class="seat-layout">
+                            ${generarLayoutAsientosPremium(asientosDisponibles, booked)}
+                        </div>
+                        
+                        <div class="aisle-indicator mt-3">
+                            <div class="aisle-line"></div>
+                            <small class="text-muted">PASILLO</small>
+                            <div class="aisle-line"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Resumen de selección mejorado -->
+                <div class="selection-summary">
+                    <h6 class="mb-2">Resumen de tu selección</h6>
+                    <div id="selectedSeatsList" class="fw-bold">Ningún asiento seleccionado</div>
+                    <div id="selectedSeatsTotal" class="small">Total: $0</div>
+                    <div id="selectedClassInfo" class="small price-breakdown"></div>
+                </div>
+            </div>
+            
             <div class="d-flex gap-2 justify-content-end mt-4">
                 <button class="btn btn-outline-secondary" id="cancelReserveModal">Volver</button>
-                <button class="btn btn-success" id="confirmReserveModal">Confirmar y pagar</button>
+                <button class="btn btn-success" id="confirmReserveModal">
+                    <i class="bi bi-credit-card me-2"></i>Confirmar y pagar
+                </button>
             </div>
         </div>
     `;
 
     const modal = new bootstrap.Modal(document.getElementById('modalReservaOferta'));
     const selected = new Set();
+    let claseSeleccionada = 'economica';
 
-    cont.querySelectorAll('.seat').forEach(el => {
-        if (el.classList.contains('booked')) return;
-        el.addEventListener('click', () => {
-            const n = parseInt(el.dataset.seat);
-            if (selected.has(n)) { selected.delete(n); el.classList.remove('selected'); }
-            else { selected.add(n); el.classList.add('selected'); }
-        });
-    });
+    // Configurar selección de clase
+    configurarSeleccionClaseSimple(selected, vuelo, claseSeleccionada);
+    // Configurar eventos de asientos
+    configurarEventosAsientosSimple(selected, vuelo, claseSeleccionada);
 
     cont.querySelector('#cancelReserveModal')?.addEventListener('click', () => modal.hide());
 
     cont.querySelector('#confirmReserveModal')?.addEventListener('click', () => {
-        if (selected.size === 0) { toast('Selecciona al menos un asiento', 'warning'); return; }
-        const user = getUser();
-        if (!user) { toast('Inicia sesión para reservar', 'warning'); new bootstrap.Modal(document.getElementById('modalLogin')).show(); return; }
-        const asientos = Array.from(selected);
-        const res = crearReserva({ clienteId: user.id, vueloId: vuelo.id, asientos });
-        if (!res || !res.ok) { toast('Error creando reserva', 'danger'); return; }
-        document.getElementById('formPago').dataset.reservaId = res.reserva.id;
-        modal.hide();
-        new bootstrap.Modal(document.getElementById('modalPago')).show();
+        confirmarReservaSimple(selected, vuelo, user, modal, claseSeleccionada);
     });
 
     modal.show();
-} */
+}
 
-/* --------------------------- Vuelos --------------------------- */
-export function renderVuelos(container) {
-    const vuelos = listarVuelos();
-    const html = vuelos.map(v => `
-        <div class="card mb-3 card-flight">
-            <img src="https://picsum.photos/seed/${v.numero}/800/200" class="card-img-top" alt="destino"/>
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="fw-bold">${v.origen} → ${v.destino}</div>
-                    <div class="small text-muted">${v.aerolinea || ''} • ${new Date(v.salida).toLocaleDateString()}</div>
+/* --------------------------- Reserva en contenido principal --------------------------- */
+function renderReserva(container, vueloId) {
+    const vuelo = db.findVueloById(vueloId);
+    if (!vuelo) { toast('Vuelo no encontrado', 'danger'); return; }
+
+    const booked = vuelo.asientosReservados || [];
+    const asientosDisponibles = generarAsientosDisponibles(vuelo, booked);
+    
+    const cont = container.querySelector('#contenidoPrincipal');
+    if (!cont) return;
+
+    cont.innerHTML = `
+        <div class="card">
+            <div class="card-body">
+                <h5 class="text-white">${vuelo.origen} → ${vuelo.destino}</h5>
+                
+                <div class="flight-info mb-3 p-3 bg-light rounded">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <small class="text-muted">Vuelo</small>
+                            <div class="fw-bold">${vuelo.numero}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Fecha</small>
+                            <div class="fw-bold">${vuelo.fecha}</div>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Precio por asiento</small>
+                            <div class="fw-bold">$${vuelo.precio || vuelo.tarifa || 0}</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-end">
-                    <div class="fw-bold">$${v.tarifa}</div>
-                    <button class="btn btn-sm btn-outline-primary" data-id="${v.id}">Reservar</button>
+                
+                <div class="seat-selection-container">
+                    <h6 class="text-center mb-3 text-white">Selecciona tus asientos</h6>
+                    
+                    <div class="seat-legend mb-3 d-flex justify-content-center gap-3">
+                        <div class="d-flex align-items-center">
+                            <div class="seat available me-2"></div>
+                            <small class="text-white">Disponible</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="seat selected me-2"></div>
+                            <small class="text-white">Seleccionado</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="seat occupied me-2"></div>
+                            <small class="text-white">Ocupado</small>
+                        </div>
+                    </div>
+                    
+                    <div class="airplane-cabin text-center mb-4">
+                        <div class="cockpit mb-3">
+                            <div class="cockpit-shape">✈️ CABINA</div>
+                        </div>
+                        
+                        <div class="seat-layout">
+                            ${generarLayoutAsientos(asientosDisponibles, booked)}
+                        </div>
+                        
+                        <div class="aisle-indicator mt-3">
+                            <div class="aisle-line"></div>
+                            <small class="text-muted">PASILLO</small>
+                            <div class="aisle-line"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="selected-seats-summary mb-3 p-3 bg-info text-white rounded">
+                        <h6 class="mb-2">Asientos seleccionados:</h6>
+                        <div id="selectedSeatsList" class="fw-bold">Ninguno</div>
+                        <div id="selectedSeatsTotal" class="small">Total: $0</div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" id="confirmReserve">Confirmar y pagar</button>
+                    <button class="btn btn-outline-secondary" id="back">Volver</button>
                 </div>
             </div>
         </div>
-    `).join('');
+    `;
 
-    const cont = container.querySelector('#contenidoPrincipal');
-    if (cont) cont.innerHTML = `<h5>Resultados</h5>${html}`;
+    const selected = new Set();
+    configurarEventosAsientos(selected, vuelo);
 
-    container.querySelectorAll('.card button[data-id]').forEach(b => {
-        b.addEventListener('click', e => {
-            const user = getUser();
-            if (!user) { toast('Debes iniciar sesión', 'warning'); new bootstrap.Modal(document.getElementById('modalLogin')).show(); return; }
-            const id = e.target.getAttribute('data-id');
-            renderReserva(container, id);
-        });
+    cont.querySelector('#back')?.addEventListener('click', () => renderVuelos(container));
+
+    cont.querySelector('#confirmReserve')?.addEventListener('click', () => {
+        if (selected.size === 0) { 
+            toast('Selecciona asientos', 'warning'); 
+            return; 
+        }
+        const user = getUser();
+        if (!user) { 
+            toast('Inicia sesión para reservar', 'warning'); 
+            new bootstrap.Modal(document.getElementById('modalLogin')).show(); 
+            return; 
+        }
+        const asientos = Array.from(selected);
+        const res = crearReserva({ clienteId: user.id, vueloId, asientos });
+        if (!res || !res.ok) { toast('Error creando reserva', 'danger'); return; }
+
+        abrirPago(res.reserva.id);
     });
 }
 
 /* --------------------------- Función auxiliar para mostrar pago --------------------------- */
-// Función para abrir el modal de pago
 function abrirPago(reservaId) {
     const user = getUser();
     if (!user) { 
@@ -835,214 +964,44 @@ function abrirPago(reservaId) {
     const formPago = document.getElementById('formPago');
     if (!formPago) return;
 
-    formPago.dataset.reservaId = reservaId; // Guardamos la reserva
-    formPago.reset(); // Limpiamos el formulario
+    formPago.dataset.reservaId = reservaId;
+    formPago.reset();
 
-    // Abrimos el modal
     const modalPago = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPago'));
     modalPago.show();
 }
 
-// Configuramos el submit del formulario de pago
-document.addEventListener('DOMContentLoaded', () => {
-    const formPago = document.getElementById('formPago');
-    if (!formPago) return;
-
-    formPago.addEventListener('submit', function(e) {
-        e.preventDefault(); // Evita recargar la página
-
-        const reservaId = formPago.dataset.reservaId;
-        if (!reservaId) return;
-
-        // Aquí iría tu lógica real de procesar pago
-        // Ejemplo: procesarPago(reservaId);
-        console.log('Procesando pago para la reserva:', reservaId);
-
-        // Cerramos el modal
-        const modalPago = bootstrap.Modal.getInstance(document.getElementById('modalPago'));
-        if (modalPago) modalPago.hide();
-
-        // Mostramos mensaje de éxito
-        toast('Pago realizado con éxito', 'success');
-    });
-});
-
-
-/* --------------------------- Reserva en contenido principal --------------------------- */
-function renderReserva(container, vueloId) {
-    const vuelo = db.findVueloById(vueloId);
-    if (!vuelo) { toast('Vuelo no encontrado', 'danger'); return; }
-
-    const booked = vuelo.asientosReservados || [];
-    let seats = '';
-    for (let i = 1; i <= (vuelo.asientosTotales || 20); i++) {
-        const cls = booked.includes(i) ? 'seat booked' : 'seat';
-        seats += `<div class="${cls}" data-seat="${i}">${i}</div>`;
-    }
-
-    const cont = container.querySelector('#contenidoPrincipal');
-    if (!cont) return;
-
-    cont.innerHTML = `
-        <div class="card">
-            <div class="card-body">
-                <h5>${vuelo.origen} → ${vuelo.destino}</h5>
-                <div class="seat-grid mb-3 d-flex flex-wrap">${seats}</div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-success" id="confirmReserve">Confirmar y pagar</button>
-                    <button class="btn btn-outline-secondary" id="back">Volver</button>
+/* --------------------------- Vuelos --------------------------- */
+export function renderVuelos(container) {
+    const vuelos = listarVuelos();
+    const html = vuelos.map(v => `
+        <div class="card mb-3 card-flight">
+            <img src="https://picsum.photos/seed/${v.numero}/800/200" class="card-img-top" alt="destino"/>
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold text-white">${v.origen} → ${v.destino}</div>
+                    <div class="small text-muted">${v.aerolinea || ''} • ${new Date(v.salida).toLocaleDateString()}</div>
+                </div>
+                <div class="text-end">
+                    <div class="fw-bold text-white">$${v.tarifa}</div>
+                    <button class="btn btn-sm btn-outline-primary" data-id="${v.id}">Reservar</button>
                 </div>
             </div>
         </div>
-    `;
-
-    const selected = new Set();
-    cont.querySelectorAll('.seat').forEach(el => {
-        if (el.classList.contains('booked')) return;
-        el.addEventListener('click', () => {
-            const n = parseInt(el.dataset.seat);
-            if (selected.has(n)) { selected.delete(n); el.classList.remove('selected'); }
-            else { selected.add(n); el.classList.add('selected'); }
-        });
-    });
-
-    cont.querySelector('#back')?.addEventListener('click', () => renderVuelos(container));
-
-    cont.querySelector('#confirmReserve')?.addEventListener('click', () => {
-        if (selected.size === 0) { toast('Selecciona asientos', 'warning'); return; }
-        const user = getUser();
-        if (!user) { 
-            toast('Inicia sesión para reservar', 'warning'); 
-            new bootstrap.Modal(document.getElementById('modalLogin')).show(); 
-            return; 
-        }
-        const asientos = Array.from(selected);
-        const res = crearReserva({ clienteId: user.id, vueloId, asientos });
-        if (!res || !res.ok) { toast('Error creando reserva', 'danger'); return; }
-
-        abrirPago(res.reserva.id);
-    });
-}
-
-/* --------------------------- Modal Reserva --------------------------- */
-function renderReservaModal(vuelo) {
-    console.log('🔍 MODAL RESERVA: Iniciando reserva para vuelo:', vuelo);
-    const booked = vuelo.asientosReservados || [];
-    let seats = '';
-    for (let i = 1; i <= (vuelo.asientosTotales || 20); i++) {
-        const cls = booked.includes(i) ? 'seat booked' : 'seat';
-        seats += `<div class="${cls}" data-seat="${i}">${i}</div>`;
-    }
-
-    const cont = document.getElementById('contenidoReservaModal');
-    if (!cont) return;
-
-    cont.innerHTML = `
-        <div>
-            <h5 class="mb-3 text-center">${vuelo.origen} → ${vuelo.destino}</h5>
-            <div class="seat-grid mb-3 d-flex justify-content-center flex-wrap">${seats}</div>
-            <div class="d-flex gap-2 justify-content-end mt-4">
-                <button class="btn btn-outline-secondary" id="cancelReserveModal">Volver</button>
-                <button class="btn btn-success" id="confirmReserveModal">Confirmar y pagar</button>
-            </div>
-        </div>
-    `;
-
-    const modal = new bootstrap.Modal(document.getElementById('modalReservaOferta'));
-    const selected = new Set();
-
-    cont.querySelectorAll('.seat').forEach(el => {
-        if (el.classList.contains('booked')) return;
-        el.addEventListener('click', () => {
-            const n = parseInt(el.dataset.seat);
-            if (selected.has(n)) { selected.delete(n); el.classList.remove('selected'); }
-            else { selected.add(n); el.classList.add('selected'); }
-        });
-    });
-
-    cont.querySelector('#cancelReserveModal')?.addEventListener('click', () => modal.hide());
-
-    cont.querySelector('#confirmReserveModal')?.addEventListener('click', () => {
-         console.log('🔍 CONFIRMAR RESERVA: Botón clickeado');
-        if (selected.size === 0) { toast('Selecciona al menos un asiento', 'warning'); return; }
-        const user = getUser();
-        if (!user) { 
-            toast('Inicia sesión para reservar', 'warning'); 
-            new bootstrap.Modal(document.getElementById('modalLogin')).show(); 
-            return; 
-        }
-        const asientos = Array.from(selected);
-
-        console.log('🔍 LLAMANDO crearReservaValida:', {
-            clienteId: user.id,
-            vueloId: vuelo.id,
-            asientos: asientos
-        });
-
-        const res = crearReserva({ clienteId: user.id, vueloId: vuelo.id, asientos });
-        if (!res || !res.ok) { toast('Error creando reserva', 'danger'); return; }
-
-        modal.hide();
-        abrirPago(res.reserva.id);
-    });
-
-    modal.show();
-}
-
-
-/* --------------------------- Reserva en contenido principal --------------------------- 
-function renderReserva(container, vueloId) {
-    const vuelo = db.findVueloById(vueloId);
-    if (!vuelo) { toast('Vuelo no encontrado', 'danger'); return; }
-
-    const booked = vuelo.asientosReservados || [];
-    let seats = '';
-    for (let i = 1; i <= (vuelo.asientosTotales || 20); i++) {
-        const cls = booked.includes(i) ? 'seat booked' : 'seat';
-        seats += `<div class="${cls}" data-seat="${i}">${i}</div>`;
-    }
+    `).join('');
 
     const cont = container.querySelector('#contenidoPrincipal');
-    if (!cont) return;
+    if (cont) cont.innerHTML = `<h5 class="text-white">Resultados</h5>${html}`;
 
-    cont.innerHTML = `
-        <div class="card">
-            <div class="card-body">
-                <h5>${vuelo.origen} → ${vuelo.destino}</h5>
-                <div class="seat-grid mb-3 d-flex flex-wrap">${seats}</div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-success" id="confirmReserve">Confirmar y pagar</button>
-                    <button class="btn btn-outline-secondary" id="back">Volver</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    const selected = new Set();
-    cont.querySelectorAll('.seat').forEach(el => {
-        if (el.classList.contains('booked')) return;
-        el.addEventListener('click', () => {
-            const n = parseInt(el.dataset.seat);
-            if (selected.has(n)) { selected.delete(n); el.classList.remove('selected'); }
-            else { selected.add(n); el.classList.add('selected'); }
+    container.querySelectorAll('.card button[data-id]').forEach(b => {
+        b.addEventListener('click', e => {
+            const user = getUser();
+            if (!user) { toast('Debes iniciar sesión', 'warning'); new bootstrap.Modal(document.getElementById('modalLogin')).show(); return; }
+            const id = e.target.getAttribute('data-id');
+            renderReserva(container, id);
         });
     });
-
-    cont.querySelector('#back')?.addEventListener('click', () => renderVuelos(container));
-
-    cont.querySelector('#confirmReserve')?.addEventListener('click', () => {
-        if (selected.size === 0) { toast('Selecciona asientos', 'warning'); return; }
-        const user = getUser();
-        if (!user) { toast('Inicia sesión para reservar', 'warning'); new bootstrap.Modal(document.getElementById('modalLogin')).show(); return; }
-        const asientos = Array.from(selected);
-        const res = crearReserva({ clienteId: user.id, vueloId, asientos });
-        if (!res || !res.ok) { toast('Error creando reserva', 'danger'); return; }
-        document.getElementById('formPago').dataset.reservaId = res.reserva.id;
-        new bootstrap.Modal(document.getElementById('modalPago')).show();
-    });
-}*/
-
-
+}
 
 /* --------------------------- Mis Reservas --------------------------- */
 export function renderMisReservas(container) {
@@ -1071,15 +1030,15 @@ export function renderMisReservas(container) {
         </div>
     `).join('');
 
-    cont.innerHTML = `<h5>Mis Reservas</h5>${html}`;
+    cont.innerHTML = `<h5 class="text-white">Mis Reservas</h5>${html}`;
 
     document.querySelectorAll('.btn-pagar').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const reservaId = btn.dataset.reservaId;
-      document.getElementById('reservaIdPago').value = reservaId;
-      new bootstrap.Modal(document.getElementById('modalPago')).show();
+        btn.addEventListener('click', () => {
+          const reservaId = btn.dataset.reservaId;
+          document.getElementById('reservaIdPago').value = reservaId;
+          new bootstrap.Modal(document.getElementById('modalPago')).show();
+        });
     });
-  });
 
     cont.querySelectorAll('button[data-id]').forEach(b => {
         b.addEventListener('click', e => {
@@ -1093,7 +1052,7 @@ export function renderMisReservas(container) {
 
 /* --------------------------- Tablero pequeño (side) --------------------------- */
 function renderTableroSmall() {
-    const vuelos = listarVuelos().slice(0, 10); // si quieres más, cambia a 10 o todos
+    const vuelos = listarVuelos().slice(0, 10);
 
     const html = vuelos.map(v => `
         <div class="small text-white mb-1">
@@ -1110,7 +1069,6 @@ function renderTableroSmall() {
 
 renderTableroSmall();
 
-
 /* --------------------------- Panel Administrativo --------------------------- */
 export function renderAdminPanel(container) {
     const user = getUser();
@@ -1118,15 +1076,6 @@ export function renderAdminPanel(container) {
 
     const vuelos = listarVuelos();
     const reservas = db.obtenerTodasReservas ? db.obtenerTodasReservas() : [];
-
-   
-
-    //renderTablaVuelosAdmin(vuelos);
-    //renderTablaReservas(reservas);
-    document.addEventListener('DOMContentLoaded', () => {
-    //renderTablaVuelosAdmin(); // sin parámetros
-    renderTablaReservas(reservas); // asegúrate de que reservas exista
-});
 
     document.getElementById("btnAgregarVuelo")?.addEventListener("click", () => {
         const numero = prompt("Número de vuelo:");
@@ -1140,7 +1089,6 @@ export function renderAdminPanel(container) {
     });
 }
 
-//
 export function renderPagos(container = document.getElementById('app')) {
   const user = JSON.parse(sessionStorage.getItem('aero_user'));
   if (!user) {
@@ -1189,13 +1137,12 @@ export function renderPagos(container = document.getElementById('app')) {
     </div>
   `;
 
-  // === PAGAR DIRECTO SIN FORMULARIO ===
   reservas
     .filter(r => r.pagoEstado !== 'pagada' && r.estado !== 'cancelada')
     .forEach(reserva => {
       const result = procesarPago({
         reservaId: reserva.id,
-        numero: '0000 0000 0000 0000', // valores dummy
+        numero: '0000 0000 0000 0000',
         exp: '12/99',
         cvv: '000',
         nombre: user.nombre || 'Cliente'
@@ -1208,17 +1155,8 @@ export function renderPagos(container = document.getElementById('app')) {
       }
     });
 
-  // Refresca el historial después de procesar todos los pagos
-  // Evita stack overflow usando setTimeout para romper recursión directa
   setTimeout(() => renderPagos(container), 50);
 }
-
-
-
-
-//
-
-
 
 function renderTablaVuelosGeneral(vuelos) {
     const cont = document.getElementById("listaVuelos");
@@ -1281,7 +1219,7 @@ function renderTablaReservas(reservas) {
 
     cont.innerHTML = `
         <table class="table table-dark table-bordered">
-            <thead><tr><th>Código</th><th>Usuario</th><th>Vuelo</th><th>Fe cha</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Código</th><th>Usuario</th><th>Vuelo</th><th>Fecha</th><th>Estado</th></tr></thead>
             <tbody>
                 ${reservas.map(r => `
                     <tr>
@@ -1297,42 +1235,226 @@ function renderTablaReservas(reservas) {
     `;
 }
 
-/* --------------------------- Procesar pago desde modal --------------------------- *
-document.getElementById('formPago')?.addEventListener('submit', e => {
-  e.preventDefault();
+/* ==================== FUNCIONES SIMPLIFICADAS PARA CLASES PREMIUM ==================== */
 
-  const user = JSON.parse(sessionStorage.getItem('aero_user'));
-  if (!user) {
-    toast('Debes iniciar sesión para pagar', 'warning');
-    return;
-  }
+// Función simplificada para configurar selección de clase
+function configurarSeleccionClaseSimple(selected, vuelo, claseInicial) {
+    document.querySelectorAll('.clase-option').forEach(option => {
+        option.addEventListener('click', function() {
+            // Remover selección anterior
+            document.querySelectorAll('.clase-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Agregar selección nueva
+            this.classList.add('selected');
+            
+            // Actualizar clase seleccionada
+            window.claseSeleccionada = this.dataset.clase;
+            
+            // Recalcular precios y actualizar resumen
+            actualizarResumenSeleccionSimple(selected, vuelo, window.claseSeleccionada);
+        });
+    });
+    
+    // Seleccionar clase inicial
+    const optionInicial = document.querySelector(`.clase-option[data-clase="${claseInicial}"]`);
+    if (optionInicial) {
+        optionInicial.classList.add('selected');
+        window.claseSeleccionada = claseInicial;
+    }
+}
 
-  const reservaId = document.getElementById('formPago').dataset.reservaId 
-                    || document.getElementById('reservaIdPago').value;
-  if (!reservaId) {
-    toast('No se encontró la reserva asociada al pago', 'danger');
-    return;
-  }
+// Función simplificada para generar layout de asientos premium
+function generarLayoutAsientosPremium(asientosDisponibles, booked) {
+    const clases = ['A', 'B', 'C', 'D'];
+    const filas = 10;
+    let html = '';
+    
+    for (let fila = 1; fila <= filas; fila++) {
+        const claseFila = obtenerClasePorFilaSimple(fila);
+        html += `<div class="seat-row mb-2 d-flex justify-content-center align-items-center">`;
+        html += `<div class="row-number me-2 fw-bold text-white">${fila}</div>`;
+        
+        for (let clase of clases) {
+            const asiento = `${clase}${fila}`;
+            const estaOcupado = booked.includes(asiento);
+            const estaDisponible = asientosDisponibles.includes(asiento);
+            let seatClass = 'seat';
+            
+            if (estaOcupado) {
+                seatClass += ' occupied';
+            } else if (estaDisponible) {
+                seatClass += ' available';
+                // Agregar clases especiales según la fila
+                if (claseFila === 'primera') {
+                    seatClass += ' premium primera-clase';
+                } else if (claseFila === 'business') {
+                    seatClass += ' premium business-class';
+                } else if (claseFila === 'economicaPlus') {
+                    seatClass += ' premium economica-plus';
+                }
+            } else {
+                seatClass += ' unavailable';
+            }
+            
+            // Agregar separación entre B y C (pasillo)
+            if (clase === 'C') {
+                html += `<div class="aisle-spacer"></div>`;
+            }
+            
+            html += `<div class="${seatClass}" data-seat="${asiento}" data-fila="${fila}" data-clase="${clase}">
+                ${asiento}
+            </div>`;
+        }
+        
+        html += `</div>`;
+    }
+    
+    return html;
+}
 
-  // Recoger datos del formulario
-  const numero = document.querySelector('#formPago input[placeholder="1234 5678 9012 3456"]').value.trim();
-  const nombre = document.querySelector('#formPago input[placeholder="Juan Pérez"]').value.trim();
-  const exp = document.querySelector('#formPago input[placeholder="MM/AA"]').value.trim();
-  const cvv = document.querySelector('#formPago input[placeholder="123"]').value.trim();
+// Función simplificada para obtener clase por fila
+function obtenerClasePorFilaSimple(fila) {
+    if (fila <= 3) return 'primera';
+    if (fila <= 7) return 'business';
+    if (fila <= 14) return 'economicaPlus';
+    return 'economica';
+}
 
-  // Procesar sin restricciones
-  const result = procesarPago({ reservaId, numero, exp, cvv, nombre });
+// Función simplificada para configurar eventos de asientos
+function configurarEventosAsientosSimple(selected, vuelo, clase) {
+    window.selectedSeats = selected;
+    window.currentVuelo = vuelo;
 
-  if (result.ok) {
-    toast('✅ Pago completado correctamente');
-    const modal = bootstrap.Modal.getInstance(document.getElementById('modalPago'));
-    modal?.hide();
-  } else {
-    toast(result.msg || 'Error al procesar el pago', 'danger');
-  }
-});*/
+    document.querySelectorAll('.seat.available').forEach(asientoEl => {
+        asientoEl.addEventListener('click', () => {
+            const numeroAsiento = asientoEl.dataset.seat;
+            const fila = parseInt(asientoEl.dataset.fila);
+            
+            if (selected.has(numeroAsiento)) {
+                // Deseleccionar
+                selected.delete(numeroAsiento);
+                asientoEl.classList.remove('selected');
+            } else {
+                // Seleccionar (sin validaciones complejas por ahora)
+                selected.add(numeroAsiento);
+                asientoEl.classList.add('selected');
+            }
+            
+            actualizarResumenSeleccionSimple(selected, vuelo, clase);
+        });
+    });
+}
 
+// Función simplificada para actualizar resumen
+function actualizarResumenSeleccionSimple(selected, vuelo, clase) {
+    const listaElement = document.getElementById('selectedSeatsList');
+    const totalElement = document.getElementById('selectedSeatsTotal');
+    const classInfoElement = document.getElementById('selectedClassInfo');
+    
+    if (!listaElement || !totalElement || !classInfoElement) return;
+    
+    const asientosArray = Array.from(selected);
+    const precioBase = vuelo.precio || vuelo.tarifa || 0;
+    
+    // Calcular precio según clase seleccionada
+    let precioPorAsiento;
+    switch(clase) {
+        case 'economicaPlus':
+            precioPorAsiento = Math.round(precioBase * 1.3);
+            break;
+        case 'business':
+            precioPorAsiento = Math.round(precioBase * 2.0);
+            break;
+        case 'primera':
+            precioPorAsiento = Math.round(precioBase * 3.5);
+            break;
+        default:
+            precioPorAsiento = precioBase;
+    }
+    
+    const total = asientosArray.length * precioPorAsiento;
+    
+    if (asientosArray.length === 0) {
+        listaElement.textContent = 'Ningún asiento seleccionado';
+        totalElement.textContent = 'Total: $0';
+        classInfoElement.textContent = '';
+    } else {
+        listaElement.textContent = asientosArray.join(', ');
+        totalElement.textContent = `Total: $${total}`;
+        
+        // Obtener nombre de la clase
+        let nombreClase = 'Económica';
+        if (clase === 'economicaPlus') nombreClase = 'Económica Plus';
+        if (clase === 'business') nombreClase = 'Business';
+        if (clase === 'primera') nombreClase = 'Primera Clase';
+        
+        classInfoElement.textContent = `${asientosArray.length} asiento(s) en ${nombreClase} - $${precioPorAsiento} c/u`;
+    }
+}
 
+// Función simplificada para confirmar reserva
+function confirmarReservaSimple(selected, vuelo, user, modal, clase) {
+    if (selected.size === 0) {
+        toast('Selecciona al menos un asiento', 'warning');
+        return;
+    }
+    
+    if (!user) {
+        toast('Inicia sesión para reservar', 'warning');
+        new bootstrap.Modal(document.getElementById('modalLogin')).show();
+        return;
+    }
+    
+    const asientos = Array.from(selected);
+    
+    console.log('🔍 CREANDO RESERVA PREMIUM:', {
+        clienteId: user.id,
+        vueloId: vuelo.id,
+        asientos: asientos,
+        clase: clase
+    });
 
+    // Calcular precio final según clase
+    const precioBase = vuelo.precio || vuelo.tarifa || 0;
+    let precioFinal;
+    switch(clase) {
+        case 'economicaPlus':
+            precioFinal = Math.round(precioBase * 1.3);
+            break;
+        case 'business':
+            precioFinal = Math.round(precioBase * 2.0);
+            break;
+        case 'primera':
+            precioFinal = Math.round(precioBase * 3.5);
+            break;
+        default:
+            precioFinal = precioBase;
+    }
 
+    const res = crearReserva({ 
+        clienteId: user.id, 
+        vueloId: vuelo.id, 
+        asientos: asientos,
+        total: asientos.length * precioFinal
+    });
+    
+    if (!res || !res.ok) {
+        toast('Error creando reserva', 'danger');
+        return;
+    }
+
+    // Mostrar mensaje según la clase seleccionada
+    let mensajeClase = 'Económica';
+    if (clase === 'economicaPlus') mensajeClase = 'Económica Plus';
+    if (clase === 'business') mensajeClase = 'Business';
+    if (clase === 'primera') mensajeClase = 'Primera Clase';
+    
+    toast(`✅ Reserva confirmada en clase ${mensajeClase}!`, 'success');
+    modal.hide();
+    abrirPago(res.reserva.id);
+}
+
+// ✅ EXPORT DEFAULT DEBE IR AL FINAL ABSOLUTO DEL ARCHIVO
 export default { renderInicio, renderVuelos, renderMisReservas, renderAdminPanel };

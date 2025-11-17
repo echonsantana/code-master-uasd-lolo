@@ -1,19 +1,13 @@
 // src/controladores.js
-import BaseDatos from './baseDatos.js'; // si no está arriba del todo, añádelo
+import BaseDatos from './baseDatos.js';
 import BaseDB from './baseDatos.js';
 import { EmailNotificationService } from './services/emailNotificationService.js';
 
 const db = new BaseDB();
 function uid(prefix='id'){ return prefix + Math.random().toString(36).slice(2,9); }
 
-//
-
-
-
-//
-
 export function registrarUsuario({ nombre, email, pass }){
-  console.log('🔍 BUSCANDO USUARIO PARA EMAIL:', usuario);
+  console.log('🔍 BUSCANDO USUARIO PARA EMAIL:', email);
   const u = db.obtenerUsuarios().find(x=> x.email===email);
   if(u) return { ok:false, msg:'Email ya registrado' };
   const nuevo = { id: uid('u'), nombre, email, pass };
@@ -29,20 +23,42 @@ export function loginUsuario(email, pass){
 
 export function listarVuelos(){ return db.obtenerVuelos(); }
 
-export function crearReserva({ clienteId, vueloId, asientos }){
-  const id = uid('R'); const codigo = 'R'+Math.random().toString(36).slice(2,7).toUpperCase();
-  const reserva = { id, codigo, clienteId, vueloId, fecha: new Date().toISOString(), asientos, total:0, estado:'confirmada', pagoEstado:'pendiente' };
-  const vuelo = db.findVueloById(vueloId); reserva.total = (vuelo && vuelo.tarifa) ? vuelo.tarifa * asientos.length : 0;
-  db.crearReserva(reserva);
-  return { ok:true, reserva };
+// ✅ CORREGIDO: Función crearReserva mejorada
+export function crearReserva({ clienteId, vueloId, asientos, total }){
+  console.log('🎫 CREANDO RESERVA:', { clienteId, vueloId, asientos, total });
+  
+  const id = uid('R'); 
+  const codigo = 'R'+Math.random().toString(36).slice(2,7).toUpperCase();
+  
+  const reserva = { 
+    id, 
+    codigo, 
+    clienteId, 
+    vueloId, 
+    fecha: new Date().toISOString(), 
+    asientos, 
+    total: total || 0, 
+    estado:'confirmada', 
+    pagoEstado:'pendiente' 
+  };
+  
+  console.log('📋 RESERVA A GUARDAR:', reserva);
+  
+  // ✅ CORREGIDO: Usar la función correcta de la base de datos
+  const reservaCreada = db.crearReserva(reserva);
+  
+  if (reservaCreada) {
+    console.log('✅ RESERVA GUARDADA EN BD:', reservaCreada);
+    return { ok:true, reserva: reservaCreada };
+  } else {
+    console.error('❌ ERROR AL GUARDAR RESERVA');
+    return { ok:false, msg:'Error al crear la reserva' };
+  }
 }
 
+export function crearReservaValida({ clienteId, vueloId, asientos, total }) {
+  console.log('🔍 DIAGNÓSTICO: crearReservaValida EJECUTÁNDOSE', { clienteId, vueloId, asientos, total });
 
-//
-export function crearReservaValida({ clienteId, vueloId, asientos }) {
-  console.log('🔍 DIAGNÓSTICO: crearReservaValida EJECUTÁNDOSE', { clienteId, vueloId, asientos });
-
-  
   const vuelo = db.findVueloById(vueloId);
   if (!vuelo) {
       console.log('❌ Vuelo no encontrado');
@@ -74,19 +90,36 @@ export function crearReservaValida({ clienteId, vueloId, asientos }) {
   // Crear reserva
   const id = uid('R');
   const codigo = 'R' + Math.random().toString(36).slice(2,7).toUpperCase();
+  
+  // ✅ CORREGIDO: Calcular total correctamente
+  const precioBase = vuelo.precio || vuelo.tarifa || 0;
+  const totalReserva = total || (precioBase * asientos.length);
+  
   const reserva = {
-    id, codigo, clienteId, vueloId, asientos,
+    id, 
+    codigo, 
+    clienteId, 
+    vueloId, 
+    asientos,
     fecha: new Date().toISOString(),
-    total: vuelo.tarifa * asientos.length,
+    total: totalReserva,
     estado: 'confirmada',
     pagoEstado: 'pendiente'
   };
-  db.crearReserva(reserva);
+  
+  console.log('📋 CREANDO RESERVA VÁLIDA:', reserva);
+  
+  const reservaCreada = db.crearReserva(reserva);
+  
+  if (!reservaCreada) {
+    console.error('❌ ERROR AL CREAR RESERVA VÁLIDA');
+    return null;
+  }
 
-    // ✅ ENVIAR EMAIL DE RESERVA (SOLO ESTO ES NUEVO)
+  // ✅ ENVIAR EMAIL DE RESERVA
   const usuario = db.obtenerUsuarios().find(u => u.id === clienteId);
   if (usuario && usuario.email) {
-    EmailNotificationService.enviarEmailReserva(usuario.email, reserva, vuelo)
+    EmailNotificationService.enviarEmailReserva(usuario.email, reservaCreada, vuelo)
       .then(resultado => {
         if (resultado.success) {
           console.log('📧 Email de reserva enviado exitosamente a:', usuario.email);
@@ -99,19 +132,25 @@ export function crearReservaValida({ clienteId, vueloId, asientos }) {
       });
   }
 
-  toast('Reserva creada correctamente. Se ha enviado un email de confirmación.', 'success');
-  return reserva;
+  // ✅ CORREGIDO: Usar toast global
+  if (typeof window !== 'undefined' && window.showToast) {
+    window.showToast('Reserva creada correctamente. Se ha enviado un email de confirmación.', 'success');
+  } else {
+    console.log('✅ Reserva creada correctamente');
+  }
+  
+  return reservaCreada;
 }
 
-
-//
-
 export function cancelarReserva(id){
+  console.log('🗑️ CANCELANDO RESERVA:', id);
   const ok = db.cancelarReserva(id);
   return { ok };
 }
 
 export function procesarPago({ reservaId, numero, exp, cvv, nombre }) {
+  console.log('💳 PROCESANDO PAGO PARA RESERVA:', reservaId);
+  
   if (!reservaId) return { ok: false, msg: 'Falta el ID de la reserva' };
 
   const reserva = db.obtenerReservas().find(r => r.id === reservaId);
@@ -129,42 +168,38 @@ export function procesarPago({ reservaId, numero, exp, cvv, nombre }) {
     estado: 'Completado'
   };
 
-  db.registrarPago(pago);
+  console.log('💰 PAGO A REGISTRAR:', pago);
 
-  const r = db.obtenerReservas().find(x => x.id === reservaId);
-  if (r) {
-    r.pagoEstado = 'pagada';
-    r.transaccion = pago.codigo;
-    db._save();
+  const pagoRegistrado = db.registrarPago(pago);
+
+  if (pagoRegistrado) {
+    console.log('✅ PAGO REGISTRADO CORRECTAMENTE');
+    
+    // ✅ CORREGIDO: Actualizar estado de pago de la reserva
+    const r = db.obtenerReservas().find(x => x.id === reservaId);
+    if (r) {
+      r.pagoEstado = 'pagada';
+      r.transaccion = pago.codigo;
+      db._save(); // ✅ Guardar cambios
+      console.log('✅ ESTADO DE RESERVA ACTUALIZADO A PAGADA');
+    }
+    
+    return { ok: true, pago: pagoRegistrado };
+  } else {
+    console.error('❌ ERROR AL REGISTRAR PAGO');
+    return { ok: false, msg: 'Error al registrar el pago' };
   }
-
-  return { ok: true, pago };
 }
 
-
-
-
-export function obtenerPagos(){ return db.obtenerPagos(); }
-/*
-// ===== FUNCIONES PARA MIS RESERVAS =====
-export function obtenerReservasActivas(userId) {
-  const db = new BaseDatos();
-  const reservas = db.obtenerReservasByUser(userId);
-  
-  // Filtrar solo reservas activas (no canceladas)
-  const reservasActivas = reservas.filter(r => 
-    r.estado !== 'cancelada'
-  );
-  
-  return {
-    ok: true,
-    reservas: reservasActivas,
-    total: reservasActivas.length,
-    mensaje: `Se encontraron ${reservasActivas.length} reservas activas`
-  };
-} */
+export function obtenerPagos(){ 
+  const pagos = db.obtenerPagos();
+  console.log('📊 PAGOS OBTENIDOS:', pagos);
+  return pagos; 
+}
 
 export function obtenerReservasActivas(userId) {
+  console.log('🔍 OBTENIENDO RESERVAS PARA USUARIO:', userId);
+  
   const db = new BaseDatos();
   const reservas = db.obtenerReservasByUser(userId);
   
@@ -183,4 +218,13 @@ export function obtenerReservasActivas(userId) {
     total: reservasActivas.length,
     mensaje: `Se encontraron ${reservasActivas.length} reservas activas`
   };
+}
+
+// ✅ CORREGIDO: Función toast global para usar en controladores
+function toast(msg, type = 'primary') {
+  if (typeof window !== 'undefined' && window.showToast) {
+    window.showToast(msg, type);
+  } else {
+    console.log(`[${type.toUpperCase()}] ${msg}`);
+  }
 }

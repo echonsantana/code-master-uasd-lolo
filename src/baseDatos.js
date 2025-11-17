@@ -5,6 +5,80 @@ export class Vuelo {
   }
 }
 
+// ✅ NUEVO: Sistema de Clases Premium
+export class SistemaClases {
+  static clases = {
+    economica: {
+      nombre: 'Económica',
+      precioBase: 1.0,
+      caracteristicas: ['Asiento estándar', 'Servicio básico'],
+      filas: '15-30',
+      color: '#28a745'
+    },
+    economicaPlus: {
+      nombre: 'Económica Plus',
+      precioBase: 1.3,
+      caracteristicas: ['Más espacio para piernas', 'Embarque prioritario', 'Atención preferencial'],
+      filas: '8-14',
+      color: '#17a2b8'
+    },
+    business: {
+      nombre: 'Business',
+      precioBase: 2.0,
+      caracteristicas: ['Asientos reclinables', 'Comida gourmet', 'Salas VIP', 'Embarque prioritario'],
+      filas: '4-7',
+      color: '#ffc107'
+    },
+    primera: {
+      nombre: 'Primera Clase',
+      precioBase: 3.5,
+      caracteristicas: ['Suite privada', 'Comida chef', 'Chauffeur', 'Sala VIP premium'],
+      filas: '1-3',
+      color: '#dc3545'
+    }
+  };
+
+  static obtenerClasePorFila(fila) {
+    const numFila = parseInt(fila);
+    if (numFila >= 1 && numFila <= 3) return 'primera';
+    if (numFila >= 4 && numFila <= 7) return 'business';
+    if (numFila >= 8 && numFila <= 14) return 'economicaPlus';
+    return 'economica';
+  }
+
+  static calcularPrecio(clase, precioBase) {
+    return Math.round(precioBase * this.clases[clase].precioBase);
+  }
+
+  static obtenerInfoClase(clase) {
+    return this.clases[clase] || this.clases.economica;
+  }
+}
+
+// Clase para manejar el sistema de asientos por clase
+export class SistemaAsientos {
+  static generarAsientos(filas = 10, clases = ['A', 'B', 'C', 'D']) {
+    const asientos = [];
+    for (let fila = 1; fila <= filas; fila++) {
+      for (let clase of clases) {
+        asientos.push(`${clase}${fila}`);
+      }
+    }
+    return asientos;
+  }
+
+  static obtenerAsientosDisponibles(vuelo) {
+    const todosAsientos = this.generarAsientos(vuelo.filas, vuelo.clases);
+    const reservados = vuelo.asientosReservados || [];
+    return todosAsientos.filter(asiento => !reservados.includes(asiento));
+  }
+
+  static validarAsiento(asiento) {
+    const regex = /^[A-D][1-9][0-9]*$/;
+    return regex.test(asiento);
+  }
+}
+
 export default class BaseDatos {
   constructor(key = 'aero_premium_v1') {
     this.key = key;
@@ -34,12 +108,61 @@ export default class BaseDatos {
   _init() {
     return {
       usuarios: [
-        { id: 'u1', nombre: 'Agente Admin', email: 'admin@vuela.com', pass: 'admin123', rol: 'admin' }
+        { 
+          id: 'u1', 
+          nombre: 'Agente Admin', 
+          email: 'admin@vuela.com', 
+          pass: 'admin123', 
+          rol: 'admin',
+          puntos: 5000
+        }
       ],
       vuelos: [
-        { id: 'F1001', numero: 'F1001', origen: 'Santo Domingo (SDQ)', destino: 'Punta Cana (PUJ)', fecha: '2025-11-20', aerolinea: 'AeroDominicana', asientosTotales: 30, asientosReservados: [], precio: 60, estado: 'A tiempo' },
-        { id: 'F1002', numero: 'F1002', origen: 'Santo Domingo (SDQ)', destino: 'Santiago (STI)', fecha: '2025-11-21', aerolinea: 'AeroCaribe', asientosTotales: 24, asientosReservados: [], precio: 55, estado: 'A tiempo' },
-        { id: 'F3001', numero: 'F3001', origen: 'Santo Domingo (SDQ)', destino: 'New York (JFK)', fecha: '2025-11-30', aerolinea: 'IslandAir', asientosTotales: 100, asientosReservados: [], precio: 320, estado: 'A tiempo' },
+        { 
+          id: 'F1001', 
+          numero: 'F1001', 
+          origen: 'Santo Domingo (SDQ)', 
+          destino: 'Punta Cana (PUJ)', 
+          fecha: '2025-11-20', 
+          aerolinea: 'AeroDominicana', 
+          asientosTotales: 40, 
+          asientosReservados: [], 
+          precio: 60, 
+          estado: 'A tiempo',
+          clases: ['A', 'B', 'C', 'D'],
+          filas: 10,
+          puerta: 'A15'
+        },
+        { 
+          id: 'F1002', 
+          numero: 'F1002', 
+          origen: 'Santo Domingo (SDQ)', 
+          destino: 'Santiago (STI)', 
+          fecha: '2025-11-21', 
+          aerolinea: 'AeroCaribe', 
+          asientosTotales: 40, 
+          asientosReservados: [], 
+          precio: 55, 
+          estado: 'A tiempo',
+          clases: ['A', 'B', 'C', 'D'],
+          filas: 10,
+          puerta: 'B22'
+        },
+        { 
+          id: 'F3001', 
+          numero: 'F3001', 
+          origen: 'Santo Domingo (SDQ)', 
+          destino: 'New York (JFK)', 
+          fecha: '2025-11-30', 
+          aerolinea: 'IslandAir', 
+          asientosTotales: 40, 
+          asientosReservados: [], 
+          precio: 320, 
+          estado: 'A tiempo',
+          clases: ['A', 'B', 'C', 'D'],
+          filas: 10,
+          puerta: 'C08'
+        },
       ],
       reservas: [],
       pagos: []
@@ -49,14 +172,7 @@ export default class BaseDatos {
   // ===== USUARIOS =====
   obtenerUsuarios() { return this.data.usuarios || []; }
 
-  //
-     // ✅ === MÉTODOS NUEVOS PARA VERIFICACIÓN DE EMAIL ===
-  
-  /**
-   * Verifica si un email ya está registrado en el sistema
-   * @param {string} email - Email a verificar
-   * @returns {boolean} - true si el email ya existe, false si está disponible
-   */
+  // ✅ === MÉTODOS NUEVOS PARA VERIFICACIÓN DE EMAIL ===
   verificarEmailExistente(email) {
     if (!email || typeof email !== 'string') return false;
     
@@ -66,11 +182,6 @@ export default class BaseDatos {
     );
   }
 
-  /**
-   * Busca un usuario por su email
-   * @param {string} email - Email a buscar
-   * @returns {Object|null} - Usuario encontrado o null
-   */
   findUserByEmail(email) {
     if (!email || typeof email !== 'string') return null;
     
@@ -79,43 +190,26 @@ export default class BaseDatos {
       user.email && user.email.toLowerCase().trim() === emailNormalizado
     );
   }
-  // ✅ === FIN DE MÉTODOS NUEVOS ===
 
-  //
-/*
   agregarUsuario(u) {
     this.data.usuarios = this.data.usuarios || [];
     const id = `u${this.data.usuarios.length + 1}`;
-    const nuevo = { id, ...u };
-    this.data.usuarios.push(nuevo);
-    this._save();
-    return nuevo;
-  }
-    */
-
-  // PRUEBA
-  // En baseDatos.js - VERIFICAR que el método agregarUsuario sea así:
-agregarUsuario(u) {
-    this.data.usuarios = this.data.usuarios || [];
-    const id = `u${this.data.usuarios.length + 1}`;
     
-    // ✅ Asegurar que se guarde el password si viene en el objeto
     const nuevo = { 
         id, 
         nombre: u.nombre,
         email: u.email,
-        password: u.password,  // ← ESTA LÍNEA ES CLAVE
+        password: u.password,
         rol: u.rol || 'cliente',
         isVerified: u.isVerified || false,
-        createdAt: u.createdAt || new Date().toISOString()
+        createdAt: u.createdAt || new Date().toISOString(),
+        puntos: 0 // ✅ NUEVO: Inicializar puntos
     };
     
     this.data.usuarios.push(nuevo);
     this._save();
     return nuevo;
-}
-
-  //
+  }
 
   actualizarUsuario(id, nuevosDatos) {
     const u = this.data.usuarios.find(x => x.id === id);
@@ -153,8 +247,11 @@ agregarUsuario(u) {
       destino: vuelo.destino || '',
       fecha: vuelo.fecha || new Date().toISOString().slice(0, 10),
       aerolinea: vuelo.aerolinea || 'Indefinida',
-      asientosTotales: vuelo.asientosTotales || 100,
+      asientosTotales: vuelo.asientosTotales || 40,
       asientosReservados: vuelo.asientosReservados || [],
+      clases: vuelo.clases || ['A', 'B', 'C', 'D'],
+      filas: vuelo.filas || 10,
+      puerta: vuelo.puerta || 'A01',
       precio,
       tarifa: precio,
       estado: vuelo.estado || 'A tiempo'
@@ -194,7 +291,8 @@ agregarUsuario(u) {
       fecha: res.fecha || new Date().toISOString(),
       total: res.total ?? 0,
       estado: res.estado || 'confirmada',
-      pagoEstado: res.pagoEstado || 'pendiente'
+      pagoEstado: res.pagoEstado || 'pendiente',
+      clase: res.clase || 'economica' // ✅ NUEVO: Guardar clase de reserva
     };
     this.data.reservas.push(reserva);
 
@@ -239,14 +337,10 @@ agregarUsuario(u) {
     return nueva;
   }
 
-  ////
-
   obtenerReservas() {
     this.data.reservas = this.data.reservas || [];
     return this.data.reservas;
   }
-
-  ///
 
   obtenerReservasByUser(userId) {
     return this.obtenerReservas().filter(r => r.clienteId === userId);
