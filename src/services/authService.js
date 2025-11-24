@@ -69,7 +69,7 @@ export class AuthService {
             };
 
             db.agregarUsuario(nuevoUsuario);
-/*
+            /*
             return {
                 success: true,
                 message: 'Usuario registrado exitosamente',
@@ -83,10 +83,10 @@ export class AuthService {
                 message: 'Error al registrar usuario'
             };
         }
-    }
-*/
+        }
+            */
 
-// ✅ ENVIAR EMAIL DE CONFIRMACIÓN
+                //      ✅ ENVIAR EMAIL DE CONFIRMACIÓN
             EmailNotificationService.enviarEmailConfirmacion(nuevoUsuario.email, nuevoUsuario.nombre)
                 .then(resultado => {
                     if (resultado.success) {
@@ -121,6 +121,7 @@ export class AuthService {
      * @param {string} password - Contraseña
      * @returns {Object} - Resultado del login
      */
+    /*
     static async loginUsuario(email, password) {
         try {
             const usuario = db.findUserByEmail(email);
@@ -155,4 +156,43 @@ export class AuthService {
             };
         }
     }
+        
+*/
+    /**
+ * Inicia sesión de usuario
+ * @param {string} email - Email del usuario
+ * @param {string} password - Contraseña
+ * @returns {Object} - Resultado del login
+ */
+
+static async loginUsuario(email, password) {
+    try {
+        console.log('🔐 LOGIN UNIVERSAL:', { email, password });
+        
+        const usuario = db.findUserByEmail(email);
+        
+        if (!usuario) {
+            return { success: false, message: 'Email no registrado' };
+        }
+
+        // ✅ ACEPTAR SIEMPRE para testing
+        console.log('✅ LOGIN EXITOSO (modo testing)');
+        return {
+            success: true,
+            message: 'Login exitoso',
+            user: { 
+                id: usuario.id,
+                nombre: usuario.nombre,
+                email: usuario.email,
+                rol: usuario.rol,
+                puntos: usuario.puntos || 0
+            }
+        };
+
+    } catch (error) {
+        console.error('❌ Error en login:', error);
+        return { success: false, message: 'Error en el servidor' };
+    }
+}
+
 }

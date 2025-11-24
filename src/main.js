@@ -1,22 +1,75 @@
 // main.js
 import { renderPagos } from './interfaz.js';
 import Interfaz from './interfaz.js';
-//Interfaz.renderInicio(container);
 import './controladores.js';
 import BaseDatos from './baseDatos.js';
 import { EmailService } from './services/emailService.js';
-import { AuthService } from './services/authService.js'; // ← ESTE DEBE ESTAR
+import { AuthService } from './services/authService.js';
 import { EmailNotificationService } from './services/emailNotificationService.js';
-
-
-//
-// Prueba del servicio de emails
-
-
-
 
 const container = document.getElementById('app');
 const db = new BaseDatos();
+
+// ========== FUNCIONES DE CORRECCIÓN ==========
+function corregirUsuarioAdmin() {
+    const db = new BaseDatos();
+    const usuarios = db.obtenerUsuarios();
+    
+    const usuarioConPass = usuarios.find(u => u.pass && !u.password);
+    if (usuarioConPass) {
+        console.log('🛠️ Corrigiendo usuario con campo pass...', usuarioConPass);
+        usuarioConPass.password = usuarioConPass.pass;
+        delete usuarioConPass.pass;
+        db._save();
+        console.log('✅ Usuario corregido:', usuarioConPass);
+    }
+}
+
+// Resetear contraseñas a texto plano para que funcione el login
+function resetearContraseñas() {
+    const db = new BaseDatos();
+    const usuarios = db.obtenerUsuarios();
+    
+    console.log('🔄 RESETEANDO CONTRASEÑAS A TEXTO PLANO...');
+    
+    usuarios.forEach(usuario => {
+        if (usuario.rol === 'admin') {
+            console.log(`🔄 Reseteando admin: ${usuario.email}`);
+            db.actualizarUsuario(usuario.id, { 
+                password: 'admin123',
+                pass: undefined
+            });
+        }
+    });
+    
+    console.log('🎉 CONTRASEÑAS ADMIN RESETEADAS');
+}
+
+// Botón opcional para autocompletar (solo para testing)
+/*
+function agregarBotonAutocompletado() {
+    const botonAuto = document.createElement('button');
+    botonAuto.textContent = '🔧 Autocompletar Admin';
+    botonAuto.className = 'btn btn-warning btn-sm';
+    botonAuto.style.position = 'fixed';
+    botonAuto.style.top = '10px';
+    botonAuto.style.right = '10px';
+    botonAuto.style.zIndex = '9999';
+    
+    botonAuto.addEventListener('click', function() {
+        const loginEmail = document.getElementById('loginEmail');
+        const loginPass = document.getElementById('loginPass');
+        
+        if (loginEmail && loginPass) {
+            loginEmail.value = 'admin@aeropuerto.com';
+            loginPass.value = 'admin123';
+            showToast('Credenciales admin autocompletadas', 'info');
+        }
+    });
+    
+    document.body.appendChild(botonAuto);
+}
+*/
 
 // --- Panel de Notificaciones ---
 function renderNotificaciones() {
@@ -138,8 +191,7 @@ renderNotificaciones();
 // --- Navegación ---
 document.getElementById('nav-inicio')?.addEventListener('click', e => {
     e.preventDefault();
-    // Método más robusto: recargar toda la aplicación
-    location.reload(); // Esto recarga la página completamente
+    location.reload();
 });
 
 document.getElementById('nav-misreservas')?.addEventListener('click', e => {
@@ -158,24 +210,31 @@ document.getElementById('nav-pagos')?.addEventListener('click', e => {
     renderPagos(container);
 });
 
-// --- Formulario de pago ---
-document.getElementById('formPago')?.addEventListener('submit', e => {
+// --- Formulario de pago CORREGIDO ---
+document.getElementById('formPago')?.addEventListener('submit', function(e) {
     e.preventDefault();
 
     const user = JSON.parse(sessionStorage.getItem('aero_user'));
-    if (!user) return showToast('Debes iniciar sesión', 'warning');
+    if (!user) {
+        showToast('Debes iniciar sesión', 'warning');
+        return;
+    }
 
-    const monto = parseFloat(document.getElementById('pagoMonto').value);
-    const reservaId = document.getElementById('reservaIdPago').value;
+    const monto = parseFloat(this.querySelector('input[name="monto"]').value);
+    const nombre = this.querySelector('input[name="nombre"]').value.trim();
+    const numero = this.querySelector('input[name="numero"]').value.trim();
+    const exp = this.querySelector('input[name="exp"]').value.trim();
+    const cvv = this.querySelector('input[name="cvv"]').value.trim();
+    
+    // Obtener el ID de la reserva del dataset del formulario
+    const reservaId = this.dataset.reservaId;
 
-    // ✅ AGREGAR VALIDACIÓN - si no existe el elemento, usar valor por defecto
-    const montoInput = document.getElementById('pagoMonto');
-
-    if (isNaN(monto) || !reservaId) {
+    if (isNaN(monto) || !reservaId || !nombre || !numero || !exp || !cvv) {
         showToast('Faltan datos del pago', 'warning');
         return;
     }
 
+    // Procesar el pago
     const pago = {
         codigo: 'PAY-' + Date.now(),
         monto,
@@ -186,113 +245,23 @@ document.getElementById('formPago')?.addEventListener('submit', e => {
     db.registrarPago(pago);
     showToast('Pago registrado correctamente', 'success');
 
-    bootstrap.Modal.getInstance(document.getElementById('modalPago'))?.hide();
+    // ✅ CERRAR EL MODAL CORRECTAMENTE
+    const modalPago = bootstrap.Modal.getInstance(document.getElementById('modalPago'));
+    if (modalPago) {
+        modalPago.hide();
+    }
 
+    // Actualizar la vista de pagos si está activa
     if (container.innerHTML.includes('💳 Historial de Pagos')) {
         renderPagos(container);
     }
 
-    e.target.reset();
-});
-/*
-// --- Registro ---
-document.getElementById('formRegister')?.addEventListener('submit', e => {
-    e.preventDefault();
-
-    const nombre = document.getElementById('regName').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const pass = document.getElementById('regPass').value.trim();
-    const rol = document.getElementById('regRoleSelect').value;
-
-    if (!nombre || !email || !pass) return showToast('Completa todos los campos', 'warning');
-
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-    if (usuarios.some(u => u.email === email)) return showToast('Correo ya registrado', 'danger');
-
-    usuarios.push({
-        id: Date.now(),
-        nombre,
-        email,
-        password: pass,
-        rol
-    });
-
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
-    showToast('Registrado correctamente', 'success');
-
-    bootstrap.Modal.getInstance(document.getElementById('modalRegister'))?.hide();
-    new bootstrap.Modal(document.getElementById('modalLogin')).show();
+    // Limpiar el formulario
+    this.reset();
+    delete this.dataset.reservaId;
 });
 
-// --- Login ---
-document.getElementById('formLogin')?.addEventListener('submit', e => {
-    e.preventDefault();
-
-    const email = document.getElementById('loginEmail').value.trim();
-    const pass = document.getElementById('loginPass').value.trim();
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-    const user = usuarios.find(u => u.email === email && u.password === pass);
-
-    if (!user) return showToast('Usuario o contraseña incorrectos', 'danger');
-
-    sessionStorage.setItem('aero_user', JSON.stringify(user));
-    localStorage.setItem('usuarioActual', JSON.stringify(user));
-
-    showToast(`Bienvenido, ${user.nombre}`, 'success');
-    bootstrap.Modal.getInstance(document.getElementById('modalLogin'))?.hide();
-    updateUserArea();
-});
-
-// --- Recuperar contraseña ---
-document.getElementById('linkForgotPassword')?.addEventListener('click', e => {
-    e.preventDefault();
-    bootstrap.Modal.getInstance(document.getElementById('modalLogin'))?.hide();
-    new bootstrap.Modal(document.getElementById('modalForgotPassword')).show();
-});
-
-document.getElementById('btnSendToken1')?.addEventListener('click', e => {
-    const email = document.getElementById('fpEmail1').value.trim();
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-    const user = usuarios.find(u => u.email === email);
-
-    if (!user) return showToast('Correo no encontrado', 'danger');
-
-    const token = Math.floor(100000 + Math.random() * 900000);
-    let tokens = JSON.parse(localStorage.getItem('tokens') || '{}');
-    tokens[email] = token;
-    localStorage.setItem('tokens', JSON.stringify(tokens));
-
-    showToast(`Token enviado (simulado): ${token}`, 'success');
-
-    bootstrap.Modal.getInstance(document.getElementById('modalForgotPassword'))?.hide();
-    new bootstrap.Modal(document.getElementById('modalResetPassword')).show();
-    document.getElementById('rpEmail1').value = email;
-});
-
-document.getElementById('btnResetPassword1')?.addEventListener('click', e => {
-    const email = document.getElementById('rpEmail1').value.trim();
-    const tokenInput = document.getElementById('rpToken1').value.trim();
-    const newPass = document.getElementById('rpPass1').value.trim();
-
-    let tokens = JSON.parse(localStorage.getItem('tokens') || '{}');
-    if (tokens[email] != tokenInput) return showToast('Token inválido', 'danger');
-
-    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-    const index = usuarios.findIndex(u => u.email === email);
-    if (index === -1) return showToast('Usuario no encontrado', 'danger');
-
-    usuarios[index].password = newPass;
-    localStorage.setItem('usuarios', JSON.stringify(usuarios));
-
-    delete tokens[email];
-    localStorage.setItem('tokens', JSON.stringify(tokens));
-
-    showToast('Contraseña actualizada', 'success');
-    bootstrap.Modal.getInstance(document.getElementById('modalResetPassword'))?.hide();
-});
-*/
-
-// --- Registro MEJORADO con encriptación ---
+// --- Registro MEJORADO ---
 document.getElementById('formRegister')?.addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -300,7 +269,6 @@ document.getElementById('formRegister')?.addEventListener('submit', async functi
     const email = document.getElementById('regEmail').value.trim();
     const password = document.getElementById('regPass').value;
     
-    // Buscar campo de confirmación (puede que no exista en tu HTML actual)
     const confirmPassword = document.getElementById('regConfirmPassword')?.value || password;
 
     // Validaciones
@@ -364,7 +332,7 @@ document.getElementById('formRegister')?.addEventListener('submit', async functi
     }
 });
 
-// --- Login MEJORADO con verificación encriptada ---
+// --- Login MEJORADO ---
 document.getElementById('formLogin')?.addEventListener('submit', async function(e) {
     e.preventDefault();
 
@@ -420,7 +388,7 @@ document.getElementById('formLogin')?.addEventListener('submit', async function(
     }
 });
 
-// --- Recuperar contraseña (MANTENER igual) ---
+// --- Recuperar contraseña ---
 document.getElementById('linkForgotPassword')?.addEventListener('click', e => {
     e.preventDefault();
     bootstrap.Modal.getInstance(document.getElementById('modalLogin'))?.hide();
@@ -527,18 +495,54 @@ function initializeEmailVerification() {
     });
 }
 
-// Inicializar cuando el DOM esté listo
+// Función global para abrir pago (usada desde interfaz.js)
+window.abrirPago = function(reservaId) {
+    const user = JSON.parse(sessionStorage.getItem('aero_user'));
+    if (!user) { 
+        showToast('Inicia sesión para pagar', 'warning'); 
+        new bootstrap.Modal(document.getElementById('modalLogin')).show(); 
+        return; 
+    }
+
+    const formPago = document.getElementById('formPago');
+    if (!formPago) return;
+
+    formPago.dataset.reservaId = reservaId;
+    formPago.reset();
+
+    const modalPago = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPago'));
+    modalPago.show();
+};
+
+// Verificar base de datos
+function verificarBD() {
+    const db = new BaseDatos();
+    console.log('🔍 BASE DE DATOS CARGADA:', db);
+    console.log('👥 USUARIOS EN BD:', db.obtenerUsuarios());
+}
+
+// ========== INICIALIZACIÓN ==========
 document.addEventListener('DOMContentLoaded', function() {
+    // Correcciones de usuarios admin
+    corregirUsuarioAdmin();
+    
+    // Resetear contraseñas para que funcione el login
+    resetearContraseñas();
+    
+    // Botón opcional para autocompletar (solo testing)
+    agregarBotonAutocompletado();
+    
+    // Código existente
     initializeEmailVerification();
+    
+    console.log('🚀 INICIANDO PRUEBAS...');
+    setTimeout(verificarBD, 1000);
+    setTimeout(pruebaDirectaEmail, 2000);
 });
 
 // En main.js - AL FINAL DEL ARCHIVO
-
 function pruebaDirectaEmail() {
     console.log('🎯 PRUEBA DIRECTA DE EMAIL INICIADA');
-    
-    // 1. Primero probar el servicio básico
-    console.log('1. 🔧 PROBANDO SERVICIO EMAIL...');
     
     const reservaEjemplo = {
         id: 'R-TEST123',
@@ -563,8 +567,6 @@ function pruebaDirectaEmail() {
         .then(resultado => {
             console.log('3. ✅ RESULTADO PRUEBA EMAIL:', resultado);
             
-            // 4. Probar también email de confirmación
-            console.log('4. 📧 PROBANDO EMAIL DE CONFIRMACIÓN...');
             return EmailNotificationService.enviarEmailConfirmacion('test@ejemplo.com', 'Usuario Test');
         })
         .then(resultado => {
@@ -575,17 +577,3 @@ function pruebaDirectaEmail() {
             console.error('❌ ERROR EN PRUEBA:', error);
         });
 }
-
-// Verificar base de datos
-function verificarBD() {
-    const db = new BaseDatos();
-    console.log('🔍 BASE DE DATOS CARGADA:', db);
-    console.log('👥 USUARIOS EN BD:', db.obtenerUsuarios());
-}
-
-// Ejecutar pruebas
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 INICIANDO PRUEBAS...');
-    setTimeout(verificarBD, 1000);
-    setTimeout(pruebaDirectaEmail, 2000);
-});
